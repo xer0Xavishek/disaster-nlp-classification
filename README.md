@@ -68,18 +68,12 @@ flowchart TD
 
 ```text
 disaster-nlp-classification/
-├── 440 nlp-guideline.md                 # Project syllabus & evaluation guidelines
-├── disaster_nlp_classification.ipynb   # Master Google Colab / GPU Jupyter Notebook
+├── disaster_nlp_classification.ipynb   # Self-contained Master Google Colab / GPU Notebook
 ├── disaster_tweets_10k_1.csv            # Dataset (11,015 samples across 12 disaster classes)
-├── requirements.txt                     # Production Python dependencies
+├── requirements.txt                     # Python dependencies (Streamlit & Colab)
 ├── README.md                            # Comprehensive project overview & documentation
 ├── viva_preparation_guide.md            # In-depth viva defense & hyperparameter rationale guide
 ├── app.py                               # Interactive Streamlit crisis triage web application
-├── src/                                 # Modular Python source scripts
-│   ├── __init__.py
-│   ├── eda_preprocessing.py             # Exploratory analysis & linguistic cleaning
-│   ├── train_and_evaluate.py            # Systematic 30-run benchmark pipeline
-│   └── create_colab_notebook.py         # Automated Colab notebook generator
 └── report/                              # 8-Page ACL Conference LaTeX Research Paper
     ├── report.tex                       # Complete ACL-formatted LaTeX source
     ├── custom.bib                       # Academic bibliography (ACL style citations)
