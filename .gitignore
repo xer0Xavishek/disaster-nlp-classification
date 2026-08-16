@@ -27,6 +27,14 @@ htmlcov/
 *.onnx
 *.safetensors
 *.ckpt
+*.pkl
+*.model
+
+# Local Data & Intermediate Dumps
+data/
+models/
+figures/
+implementation_plan.md
 
 # IDE & OS Specific
 .vscode/
