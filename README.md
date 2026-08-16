@@ -1,145 +1,138 @@
-# Disaster Type Classification in Social Media Crisis Streams
+# Disaster Tweets Classification
 
-[![Python](https://img.shields.io/badge/Python-3.10%2B-3776AB?logo=python&logoColor=white)](https://www.python.org/)
-[![PyTorch](https://img.shields.io/badge/PyTorch-2.1%2B-EE4C2C?logo=pytorch&logoColor=white)](https://pytorch.org/)
-[![TensorFlow](https://img.shields.io/badge/TensorFlow-2.15%2B-FF6F00?logo=tensorflow&logoColor=white)](https://tensorflow.org/)
-[![Transformers](https://img.shields.io/badge/%F0%9F%A4%97%20Transformers-BERT%20Base-yellow)](https://huggingface.co/google-bert/bert-base-uncased)
-[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/xer0Xavishek/disaster-nlp-classification/blob/main/disaster_nlp_classification.ipynb)
-[![Course](https://img.shields.io/badge/Course-CSE440%20NLP-informational)](#author-and-course-details)
+A Natural Language Processing project for classifying crisis-related tweets into 12 disaster categories using classical machine learning, deep sequential neural networks, and BERT.
 
-An end-to-end Natural Language Processing project for automated multi-class categorization of emergency social media posts across 12 disaster categories. Developed as part of the **CSE440: Natural Language Processing** curriculum at BRAC University.
+**Course:** CSE440 - Natural Language Processing (Summer 2026)  
+**Student:** Avishek Biswas (ID: 23201427)  
+**Section:** 03  
+**Institution:** BRAC University  
 
----
-
-## 📌 Problem Overview & Dataset
-
-During rapid-onset natural and humanitarian emergencies, microblogging feeds (such as Twitter/X) become vital channels for real-time situational awareness, distress notifications, and infrastructure reports. However, the volume and noise level make manual screening unfeasible for emergency response agencies.
-
-This project implements and evaluates an automated multi-class text classification pipeline on a benchmark corpus of **11,015 annotated crisis tweets** ([CrisisNLP / CrisisBench](https://raw.githubusercontent.com/xer0Xavishek/disaster-nlp-classification/refs/heads/main/disaster_tweets_10k_1.csv)) across **12 disaster classes**:
-
-- **Natural Hazards:** `Earthquake`, `Flood`, `Wildfire`, `Typhoon`, `Haze`, `Meteor`
-- **Man-Made & Urban Incidents:** `Explosion`, `Shooting`, `Bombing`, `Transportation Accident`, `Building Collapse`, `Fire`
-
-The dataset is partitioned using a 3-way **stratified split**:
-- **Train Set (70%):** 7,709 samples
-- **Validation Set (15%):** 1,653 samples
-- **Test Set (15%):** 1,653 samples
-
----
-
-## 🛠️ Methodology & Technical Pipeline
-
-```mermaid
-flowchart LR
-    A[Raw Social Media Corpus\n11,015 Tweets] --> B[Text Normalization\nNLTK + Lemmatization]
-    B --> C[Stratified Split\n70% / 15% / 15%]
-    C --> D1[TF-IDF N-grams\nmax_features=10k]
-    C --> D2[Domain Word2Vec\nSkip-Gram d=100]
-    C --> D3[WordPiece Tokens\nBERT max_len=64]
-    D1 --> E1[Classical ML\nLogReg, RF, MNB]
-    D2 --> E2[Sequence Models\nRNN, GRU, LSTM]
-    D3 --> E3[Transformer\nBERT Base]
-    E1 & E2 & E3 --> F[Soft-Voting Ensemble\n0.50 BERT + 0.30 BiLSTM + 0.20 LogReg]
-    F --> G[Test Evaluation & Triage]
-```
-
-### 1. Preprocessing Pipeline
-- **Noise Filtering:** Removal of web URLs (`https?://\S+`), user mentions (`@handle`), and HTML entity unescaping.
-- **Lexical Normalization:** Contraction expansion (`can't` $\rightarrow$ `cannot`), hashtag text retention (`#flood` $\rightarrow$ `flood`), and case folding.
-- **Linguistic Processing:** Sentence tokenization via NLTK `word_tokenize`, English stopword elimination, and morphological normalization using `WordNetLemmatizer`.
-
-### 2. Feature Representations
-- **TF-IDF (Sublinear):** Unigrams and bigrams (`ngram_range=(1,2)`, `max_features=10000`, `sublinear_tf=True`).
-- **Domain Word2Vec:** Continuous vector representations ($d=100$, window size $c=5$, `min_count=2`) trained on domain-specific tweets using Skip-Gram (`sg=1`) and CBOW (`sg=0`).
-- **Transformer Subword Encoding:** WordPiece tokenization with attention masks and special tokens (`[CLS]`, `[SEP]`).
-
----
-
-## 📊 Experimental Results & Model Benchmark
-
-We evaluated **10 distinct model architectures** across **30 hyperparameter configurations**. The table below summarizes the final held-out **Test Set (1,653 unseen samples)** performance for the best-tuned checkpoint of each family:
-
-| Model Architecture | Feature Representation | Optimal Hyperparameter Configuration | Test Accuracy | Macro Precision | Macro Recall | Macro F1-Score | Weighted F1 |
-| :--- | :--- | :--- | :---: | :---: | :---: | :---: | :---: |
-| **Soft-Voting Ensemble (Bonus)** | **Hybrid (BERT + BiLSTM + LogReg)** | **Weights: $0.50 \cdot \text{BERT} + 0.30 \cdot \text{BiLSTM} + 0.20 \cdot \text{LogReg}$** | **95.28%** | **0.9540** | **0.9515** | **0.9526** | **0.9529** |
-| **BERT Base** | Subword Tokens (WordPiece) | $\text{LR}=3\times 10^{-5}$, Batch=32, Epochs=4, Warmup | **94.86%** | **0.9490** | **0.9472** | **0.9479** | **0.9484** |
-| **Bidirectional LSTM** | Word2Vec Skip-Gram ($d=100$) | 1-Layer (128 units), $\text{Dropout}=0.2$, Adam $\text{LR}=5\times 10^{-4}$ | **89.53%** | **0.8971** | **0.8938** | **0.8950** | **0.8952** |
-| **Bidirectional GRU** | Word2Vec Skip-Gram ($d=100$) | 1-Layer (128 units), $\text{Dropout}=0.2$, Adam $\text{LR}=5\times 10^{-4}$ | **89.17%** | **0.8934** | **0.8905** | **0.8916** | **0.8919** |
-| **LSTM** | Word2Vec Skip-Gram ($d=100$) | 1-Layer (128 units), $\text{Dropout}=0.2$, Adam $\text{LR}=5\times 10^{-4}$ | **88.02%** | **0.8819** | **0.8786** | **0.8798** | **0.8804** |
-| **GRU** | Word2Vec Skip-Gram ($d=100$) | 1-Layer (128 units), $\text{Dropout}=0.2$, Adam $\text{LR}=5\times 10^{-4}$ | **87.66%** | **0.8785** | **0.8749** | **0.8762** | **0.8768** |
-| **Bidirectional SimpleRNN** | Word2Vec Skip-Gram ($d=100$) | 1-Layer (128 units), $\text{Dropout}=0.2$, Adam $\text{LR}=5\times 10^{-4}$ | **83.18%** | **0.8350** | **0.8295** | **0.8317** | **0.8321** |
-| **Logistic Regression** | TF-IDF (1–2 n-grams, sublinear) | $C=1.0$, L2 Penalty, Balanced Class Weights | **82.88%** | **0.8312** | **0.8260** | **0.8279** | **0.8285** |
-| **Random Forest** | TF-IDF (1–2 n-grams, sublinear) | $n=300$ Estimators, $\text{min\_samples\_split}=4$ | **79.43%** | **0.8015** | **0.7890** | **0.7928** | **0.7940** |
-| **Multinomial Naive Bayes** | TF-IDF (1–2 n-grams, sublinear) | $\alpha=0.1$ Laplace Smoothing | **78.65%** | **0.7920** | **0.7812** | **0.7845** | **0.7861** |
-| **SimpleRNN** | Word2Vec Skip-Gram ($d=100$) | 1-Layer (64 units), Adam $\text{LR}=1\times 10^{-3}$ | **72.41%** | **0.7305** | **0.7188** | **0.7224** | **0.7238** |
-
-### Key Analytical Takeaways
-1. **Transformer Effectiveness:** Fine-tuned BERT Base achieved a **94.79% Macro F1-score**, excelling at capturing syntactic ambiguity, polysemy, and conversational informal phrasing.
-2. **Impact of Gating Mechanisms:** Gated architectures (**BiLSTM: 89.50%**, **BiGRU: 89.16%**) markedly outperformed vanilla RNNs (**72.24%**) by eliminating gradient vanishing across sequence time steps.
-3. **Efficiency of Linear Baselines:** Logistic Regression with sublinear TF-IDF attained **82.79% Macro F1** with sub-second training latency, serving as an effective low-resource baseline.
-4. **Ensemble Generalization:** The weighted soft-voting ensemble yielded the highest overall score (**95.26% Macro F1**, **95.28% Accuracy**) by combining contextual self-attention with recurrent sequence dynamics and sparse n-gram indicators.
-
----
-
-## 🌟 Bonus Components (+2 Marks)
-
-1. **Weighted Soft-Voting Ensemble:** Combines prediction probability vectors across transformer, recurrent, and linear paradigms:
-   $$P_{\text{ensemble}}(c \mid x) = 0.50 \cdot P_{\text{BERT}}(c \mid x) + 0.30 \cdot P_{\text{BiLSTM}}(c \mid x) + 0.20 \cdot P_{\text{LogReg}}(c \mid x)$$
-2. **Interactive Streamlit Web Application (`app.py`):** Real-time inference dashboard allowing users to input arbitrary crisis posts and inspect predicted disaster categories, top-3 confidence scores, and automated response routing recommendations.
-3. **Feature Representation Ablation Studies:** Detailed empirical analysis in the research report comparing sublinear TF-IDF, Word2Vec (Skip-Gram vs. CBOW), and BERT contextual embeddings.
-
----
-
-## 📁 Repository Layout
-
-```text
-disaster-nlp-classification/
-├── disaster_nlp_classification.ipynb   # Master Google Colab / GPU Notebook (Self-Contained)
-├── disaster_tweets_10k_1.csv            # 12-Class Crisis Corpus (11,015 records)
-├── requirements.txt                     # Python Package Dependencies
-├── README.md                            # Technical Documentation & Benchmark Reports
-├── app.py                               # Interactive Streamlit Web Application
-└── report/                              # ACL 2023 Formatted Research Paper
-    ├── report.tex                       # Complete LaTeX Source Code
-    ├── custom.bib                       # BibTeX Bibliography
-    └── acl.sty                          # Official ACL Conference Style Package
-```
-
----
-
-## 🚀 Reproduction & Execution Guide
-
-### Option 1: Run in Google Colab (Recommended)
-The master notebook is pre-configured to download the dataset and execute seamlessly on GPU:  
 [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/xer0Xavishek/disaster-nlp-classification/blob/main/disaster_nlp_classification.ipynb)
 
-1. Open the notebook in Google Colab.
-2. Select **Runtime** $\rightarrow$ **Change runtime type** $\rightarrow$ **T4 GPU**.
-3. Run all cells (**Runtime** $\rightarrow$ **Run all**).
+---
 
-### Option 2: Local Setup & Web App Execution
+## 1. Project Overview
+
+During natural and human-made emergencies, people frequently post real-time updates and emergency calls on social media platforms like Twitter. However, the sheer volume of posts makes it difficult for relief organizations and emergency services to find and filter actionable information quickly.
+
+The objective of this project is to build and evaluate text classification models that can categorize tweets into **12 distinct disaster types**:
+1. Earthquake
+2. Flood
+3. Wildfire
+4. Typhoon
+5. Transportation Accident
+6. Explosion
+7. Shooting
+8. Bombing
+9. Haze
+10. Meteor
+11. Building Collapse
+12. Fire
+
+---
+
+## 2. Dataset
+
+- **Source:** CrisisNLP / CrisisBench dataset (`disaster_tweets_10k_1.csv`)
+- **Total Samples:** 11,015 tweets
+- **Class Balance:** 12 classes with ~800 to 1,080 samples each (Fire has 388 samples).
+- **Split:** 70% Training (7,709 samples), 15% Validation (1,653 samples), and 15% Test (1,653 samples) using stratified sampling.
+
+---
+
+## 3. Implementation Workflow
+
+### Step 1: Preprocessing & Cleaning
+- Removed URLs, Twitter handles (`@user`), and HTML entities (`&amp;`, `&lt;`).
+- Expanded common English contractions (`can't` -> `cannot`, `it's` -> `it is`).
+- Preserved hashtag text while stripping the `#` symbol.
+- Converted text to lowercase and removed punctuation and numbers.
+- Tokenized text with NLTK `word_tokenize`, filtered English stopwords, and applied `WordNetLemmatizer`.
+
+### Step 2: Feature Representations
+- **TF-IDF:** Unigram and bigram TF-IDF with sublinear term frequency scaling (top 10,000 features) for classical ML models.
+- **Word2Vec:** Trained 100-dimensional Word2Vec embeddings (Skip-Gram & CBOW) on the training corpus.
+- **Keras Sequences:** Tokenized sequences with a vocabulary size of 15,000 and padded to a maximum length of 50 tokens.
+- **BERT Tokenizer:** Subword WordPiece tokenization for transformer fine-tuning.
+
+### Step 3: Models & Hyperparameter Tuning
+I implemented and compared 10 different models, experimenting with 3 distinct hyperparameter configurations per model (30 total runs):
+- **Classical Models:** Logistic Regression, Random Forest, Multinomial Naive Bayes.
+- **Recurrent Neural Networks:** SimpleRNN, Bidirectional SimpleRNN, GRU, Bidirectional GRU, LSTM, Bidirectional LSTM.
+- **Transformer:** Pretrained BERT Base (`google-bert/bert-base-uncased`) fine-tuned with AdamW and linear warmup.
+
+---
+
+## 4. Test Set Results
+
+Below is the evaluation summary on the held-out test set (1,653 samples) for the best configuration of each model:
+
+| Model | Representation | Best Configuration | Test Accuracy | Macro Precision | Macro Recall | Macro F1 |
+| :--- | :--- | :--- | :---: | :---: | :---: | :---: |
+| **Soft-Voting Ensemble (Bonus)** | BERT + BiLSTM + LogReg | Weights (0.50, 0.30, 0.20) | **95.28%** | **0.9540** | **0.9515** | **0.9526** |
+| **BERT Base** | Subword Tokens | LR = 3e-5, Batch = 32, Epochs = 4 | **94.86%** | **0.9490** | **0.9472** | **0.9479** |
+| **Bidirectional LSTM** | Word2Vec (100d) | 128 units, Dropout = 0.2, Adam | **89.53%** | **0.8971** | **0.8938** | **0.8950** |
+| **Bidirectional GRU** | Word2Vec (100d) | 128 units, Dropout = 0.2, Adam | **89.17%** | **0.8934** | **0.8905** | **0.8916** |
+| **LSTM** | Word2Vec (100d) | 128 units, Dropout = 0.2, Adam | **88.02%** | **0.8819** | **0.8786** | **0.8798** |
+| **GRU** | Word2Vec (100d) | 128 units, Dropout = 0.2, Adam | **87.66%** | **0.8785** | **0.8749** | **0.8762** |
+| **Bidirectional SimpleRNN** | Word2Vec (100d) | 128 units, Dropout = 0.2, Adam | **83.18%** | **0.8350** | **0.8295** | **0.8317** |
+| **Logistic Regression** | TF-IDF (1-2 ngrams) | C = 1.0, Balanced class weights | **82.88%** | **0.8312** | **0.8260** | **0.8279** |
+| **Random Forest** | TF-IDF (1-2 ngrams) | n_estimators = 300, min_samples_split = 4 | **79.43%** | **0.8015** | **0.7890** | **0.7928** |
+| **Multinomial Naive Bayes** | TF-IDF (1-2 ngrams) | alpha = 0.1 | **78.65%** | **0.7920** | **0.7812** | **0.7845** |
+| **SimpleRNN** | Word2Vec (100d) | 64 units, Adam LR = 0.001 | **72.41%** | **0.7305** | **0.7188** | **0.7224** |
+
+### Summary of Findings
+1. **BERT Base** achieved the highest standalone performance (94.79% Macro F1), demonstrating the power of contextual bidirectional self-attention on social media language.
+2. **Gated models (BiLSTM and BiGRU)** performed significantly better than vanilla SimpleRNN (89.5% vs 72.4%) because gating prevents vanishing gradients over tweet sequences.
+3. **Logistic Regression** was the strongest classical baseline (82.79% Macro F1), training in less than a second while remaining competitive.
+4. **Soft-Voting Ensemble** produced the overall best result (95.26% Macro F1), showing that combining transformer representations with recurrent and n-gram models helps correct individual edge cases.
+
+---
+
+## 5. Bonus Implementations
+
+- **Soft-Voting Ensemble:** Combined predicted probability distributions from BERT Base, BiLSTM, and Logistic Regression with fixed weighting ($0.50 \cdot \text{BERT} + 0.30 \cdot \text{BiLSTM} + 0.20 \cdot \text{LogReg}$).
+- **Interactive Web App (`app.py`):** Built a Streamlit interface that takes raw tweet text, predicts the disaster category, displays confidence scores for the top 3 classes, and provides emergency routing advice.
+- **Ablation Studies:** Evaluated the performance trade-offs across representations (TF-IDF vs Word2Vec vs BERT) and cleaning techniques in the project report.
+
+---
+
+## 6. How to Run
+
+### Running in Google Colab (Recommended)
+1. Click the **Open in Colab** badge above or open [`disaster_nlp_classification.ipynb`](disaster_nlp_classification.ipynb).
+2. Go to **Runtime -> Change runtime type** and select **T4 GPU**.
+3. Click **Runtime -> Run all**. The dataset will be loaded directly from the GitHub repository.
+
+### Running Locally
 ```bash
-# 1. Clone the repository
+# Clone the repository
 git clone https://github.com/xer0Xavishek/disaster-nlp-classification.git
 cd disaster-nlp-classification
 
-# 2. Set up virtual environment
+# Create and activate a virtual environment
 python -m venv .venv
 source .venv/bin/activate  # On Windows: .venv\Scripts\activate
 
-# 3. Install dependencies
+# Install dependencies
 pip install -r requirements.txt
 
-# 4. Launch the Streamlit crisis triage dashboard
+# Run the Streamlit web application
 streamlit run app.py
 ```
 
 ---
 
-## 👨‍🎓 Author and Course Details
+## 7. Project Structure
 
-- **Student Name:** Avishek Biswas
-- **Student ID:** 23201427
-- **Course:** CSE440 — Natural Language Processing
-- **Section:** 03
-- **Institution:** Department of Computer Science and Engineering, BRAC University
+```text
+disaster-nlp-classification/
+├── disaster_nlp_classification.ipynb   # Master notebook with complete code and outputs
+├── disaster_tweets_10k_1.csv            # CrisisNLP dataset
+├── requirements.txt                     # Python dependencies
+├── README.md                            # Project documentation
+├── app.py                               # Streamlit web application
+└── report/                              # ACL-style research paper
+    ├── report.tex                       # LaTeX source code
+    └── custom.bib                       # References
+```
