@@ -36,6 +36,10 @@ models/
 figures/
 implementation_plan.md
 
+# Personal & Confidential Preparation Notes (Never push to GitHub)
+viva_preparation_guide.md
+*viva*
+
 # IDE & OS Specific
 .vscode/
 .idea/

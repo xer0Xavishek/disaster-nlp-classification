@@ -95,7 +95,6 @@ disaster-nlp-classification/
 ├── disaster_tweets_10k_1.csv            # 12-class dataset (11,015 samples)
 ├── requirements.txt                     # Python packages needed to run locally
 ├── README.md                            # Project documentation
-├── viva_preparation_guide.md            # Detailed study notes and viva Q&A
 ├── app.py                               # Streamlit web app for live predictions
 └── report/                              # 8-Page ACL format research paper
     ├── report.tex                       # LaTeX source code
