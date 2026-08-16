@@ -42,6 +42,23 @@ The objective of this project is to build and evaluate text classification model
 
 ## 3. Implementation Workflow
 
+```mermaid
+flowchart TD
+    A[Crisis Tweets Dataset\n11,015 samples] --> B[Preprocessing & Cleaning\nURLs, Mentions, Lemmatization]
+    B --> C[Stratified Split\nTrain 70% / Val 15% / Test 15%]
+    
+    C --> D1[TF-IDF N-grams\nUnigrams + Bigrams]
+    C --> D2[Domain Word2Vec\nSkip-Gram & CBOW 100d]
+    C --> D3[Subword Tokenizer\nBERT WordPiece]
+    
+    D1 --> E1[Classical ML Models\nLogistic Regression, Random Forest, Naive Bayes]
+    D2 --> E2[Sequential Deep Learning\nSimpleRNN, GRU, LSTM, Bidirectional Models]
+    D3 --> E3[Transformer\nFine-Tuned BERT Base]
+    
+    E1 & E2 & E3 --> F[Soft-Voting Ensemble\n0.50 BERT + 0.30 BiLSTM + 0.20 LogReg]
+    F --> G[Evaluation & Triage Prediction\n12 Disaster Classes]
+```
+
 ### Step 1: Preprocessing & Cleaning
 - Removed URLs, Twitter handles (`@user`), and HTML entities (`&amp;`, `&lt;`).
 - Expanded common English contractions (`can't` -> `cannot`, `it's` -> `it is`).
