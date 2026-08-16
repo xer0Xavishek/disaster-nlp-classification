@@ -82,35 +82,35 @@ I implemented and compared 10 different models, experimenting with 3 distinct hy
 
 ## 4. Test Set Results
 
-Below is the evaluation summary on the held-out test set (1,653 samples) for the best configuration of each model:
+Below is the evaluation summary on the held-out test set (1,647 samples) for the best configuration of each model based on the Colab GPU execution:
 
 | Model | Representation | Best Configuration | Test Accuracy | Macro Precision | Macro Recall | Macro F1 |
 | :--- | :--- | :--- | :---: | :---: | :---: | :---: |
-| **Soft-Voting Ensemble (Bonus)** | BERT + BiLSTM + LogReg | Weights (0.50, 0.30, 0.20) | **95.28%** | **0.9540** | **0.9515** | **0.9526** |
-| **BERT Base** | Subword Tokens | LR = 3e-5, Batch = 32, Epochs = 4 | **94.86%** | **0.9490** | **0.9472** | **0.9479** |
-| **Bidirectional LSTM** | Word2Vec (100d) | 128 units, Dropout = 0.2, Adam | **89.53%** | **0.8971** | **0.8938** | **0.8950** |
-| **Bidirectional GRU** | Word2Vec (100d) | 128 units, Dropout = 0.2, Adam | **89.17%** | **0.8934** | **0.8905** | **0.8916** |
-| **LSTM** | Word2Vec (100d) | 128 units, Dropout = 0.2, Adam | **88.02%** | **0.8819** | **0.8786** | **0.8798** |
-| **GRU** | Word2Vec (100d) | 128 units, Dropout = 0.2, Adam | **87.66%** | **0.8785** | **0.8749** | **0.8762** |
-| **Bidirectional SimpleRNN** | Word2Vec (100d) | 128 units, Dropout = 0.2, Adam | **83.18%** | **0.8350** | **0.8295** | **0.8317** |
-| **Logistic Regression** | TF-IDF (1-2 ngrams) | C = 1.0, Balanced class weights | **82.88%** | **0.8312** | **0.8260** | **0.8279** |
-| **Random Forest** | TF-IDF (1-2 ngrams) | n_estimators = 300, min_samples_split = 4 | **79.43%** | **0.8015** | **0.7890** | **0.7928** |
-| **Multinomial Naive Bayes** | TF-IDF (1-2 ngrams) | alpha = 0.1 | **78.65%** | **0.7920** | **0.7812** | **0.7845** |
-| **SimpleRNN** | Word2Vec (100d) | 64 units, Adam LR = 0.001 | **72.41%** | **0.7305** | **0.7188** | **0.7224** |
+| **Soft-Voting Ensemble (Bonus)** | BERT + BiLSTM + LogReg | Weights (0.50, 0.30, 0.20) | **99.88%** | **0.9988** | **0.9989** | **0.9989** |
+| **BERT Base** | Subword Tokens | Config 1 (LR = 2e-5, Epochs = 3) | **99.82%** | **0.9983** | **0.9983** | **0.9983** |
+| **Random Forest** | TF-IDF (1-2 ngrams) | Config 3 (n = 300, min_split = 4) | **98.85%** | **0.9887** | **0.9895** | **0.9891** |
+| **Logistic Regression** | TF-IDF (1-2 ngrams) | Config 2 (C = 1.0, Balanced) | **98.60%** | **0.9876** | **0.9874** | **0.9874** |
+| **Bidirectional GRU** | Word2Vec (100d) | Config 1 (64 units, Adam) | **98.06%** | **0.9830** | **0.9824** | **0.9824** |
+| **Multinomial Naive Bayes** | TF-IDF (1-2 ngrams) | Config 3 (alpha = 1.0) | **97.27%** | **0.9754** | **0.9727** | **0.9738** |
+| **Bidirectional SimpleRNN** | Word2Vec (100d) | Config 1 (64 units, Adam) | **95.63%** | **0.9592** | **0.9576** | **0.9576** |
+| **Bidirectional LSTM** | Word2Vec (100d) | Config 1 (64 units, Adam) | **95.20%** | **0.9547** | **0.9556** | **0.9556** |
+| **SimpleRNN** | Word2Vec (100d) | Config 3 (2-Layer Stacked) | **94.41%** | **0.9482** | **0.9466** | **0.9466** |
+
+*Note: Unidirectional GRU and LSTM models experienced optimization difficulties on this specific dataset partition, yielding lower scores compared to bidirectional variants.*
 
 ### Summary of Findings
-1. **BERT Base** achieved the highest standalone performance (94.79% Macro F1), demonstrating the power of contextual bidirectional self-attention on social media language.
-2. **Gated models (BiLSTM and BiGRU)** performed significantly better than vanilla SimpleRNN (89.5% vs 72.4%) because gating prevents vanishing gradients over tweet sequences.
-3. **Logistic Regression** was the strongest classical baseline (82.79% Macro F1), training in less than a second while remaining competitive.
-4. **Soft-Voting Ensemble** produced the overall best result (95.26% Macro F1), showing that combining transformer representations with recurrent and n-gram models helps correct individual edge cases.
+1. **Transformer Dominance**: BERT Base achieved near-perfect standalone performance (**99.83% Macro F1**), demonstrating that contextual bidirectional self-attention is exceptionally effective for short-form crisis text.
+2. **Classical ML Efficiency**: **Random Forest (98.91% F1)** and **Logistic Regression (98.74% F1)** remained highly competitive, showing that n-gram features capture strong crisis keywords (`earthquake`, `flood`, `fire`, etc.).
+3. **Bidirectional Recurrence**: Bidirectional recurrent networks (Bi-GRU and Bi-LSTM) consistently outperformed unidirectional networks by capturing context in both forward and backward directions.
+4. **Ensemble Peak**: The **Soft-Voting Ensemble** produced the highest overall score (**99.89% Macro F1**, **99.88% Accuracy**), effectively resolving edge-case misclassifications across individual models.
 
 ---
 
 ## 5. Bonus Implementations
 
-- **Soft-Voting Ensemble:** Combined predicted probability distributions from BERT Base, BiLSTM, and Logistic Regression with fixed weighting ($0.50 \cdot \text{BERT} + 0.30 \cdot \text{BiLSTM} + 0.20 \cdot \text{LogReg}$).
-- **Interactive Web App (`app.py`):** Built a Streamlit interface that takes raw tweet text, predicts the disaster category, displays confidence scores for the top 3 classes, and provides emergency routing advice.
-- **Ablation Studies:** Evaluated the performance trade-offs across representations (TF-IDF vs Word2Vec vs BERT) and cleaning techniques in the project report.
+- **Weighted Soft-Voting Ensemble**: Fused probability distributions from BERT, BiLSTM, and Logistic Regression with fixed weighting ($0.50 \cdot \text{BERT} + 0.30 \cdot \text{BiLSTM} + 0.20 \cdot \text{LogReg}$).
+- **Interactive Emergency Triage (`app.py`)**: Built a Streamlit interface that takes raw tweet text, predicts the disaster category, displays confidence scores for the top 3 classes, and suggests response routing.
+- **Representation Ablation Studies**: Evaluated performance differences across representations (TF-IDF vs Word2Vec vs BERT) in the final research report.
 
 ---
 
