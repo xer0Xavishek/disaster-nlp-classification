@@ -16,7 +16,7 @@ st.set_page_config(
 
 # Theme State Management
 if 'dark_mode' not in st.session_state:
-    st.session_state['dark_mode'] = False
+    st.session_state['dark_mode'] = True
 if 'terms_accepted' not in st.session_state:
     st.session_state['terms_accepted'] = False
 
