@@ -3,9 +3,14 @@
 A Natural Language Processing project for classifying crisis-related tweets into 12 disaster categories using classical machine learning, deep sequential neural networks, and BERT.
 
 **Course:** CSE440 - Natural Language Processing (Summer 2026)  
-**Student:** Avishek Biswas (ID: 23201427)  
 **Section:** 03  
 **Institution:** BRAC University  
+
+**Team Members:**
+- Avishek Biswas (ID: 23201427)
+- Sreema Roy (ID: 23201444)
+- Fahim Tasnim Khan (ID: 23201087)
+- Tawsif Kabir Pritom (ID: 23201231)
 
 [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/xer0Xavishek/disaster-nlp-classification/blob/main/disaster_nlp_classification.ipynb)
 
