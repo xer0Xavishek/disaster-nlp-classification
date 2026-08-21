@@ -65,7 +65,7 @@ st.markdown(f"""
     }}
 
     /* 2. Global Typography & Headings */
-    h1, h2, h3, h4, h5, h6, p, span, label, div {{
+    h1, h2, h3, h4, h5, h6, p, label, .stMarkdown {{
         color: {text_primary} !important;
     }}
 
@@ -90,22 +90,48 @@ st.markdown(f"""
     }}
 
     /* 4. Selectboxes & Dropdowns */
-    [data-baseweb="select"],
-    [data-baseweb="select"] > div {{
+    div[data-baseweb="select"] {{
+        background-color: transparent !important;
+    }}
+
+    div[data-baseweb="select"] > div {{
         background-color: {input_bg} !important;
         color: {text_primary} !important;
         border-color: {border_color} !important;
     }}
-    
-    [data-baseweb="popover"],
-    [data-baseweb="menu"] {{
-        background-color: {card_bg} !important;
-        border: 1px solid {border_color} !important;
+
+    div[data-baseweb="select"] * {{
+        color: {text_primary} !important;
     }}
-    
-    [data-baseweb="menu"] li {{
+
+    div[data-baseweb="popover"],
+    div[data-baseweb="popover"] > div,
+    ul[data-baseweb="menu"],
+    ul[role="listbox"] {{
         background-color: {card_bg} !important;
         color: {text_primary} !important;
+        border: 1px solid {border_color} !important;
+    }}
+
+    li[data-baseweb="menu-item"],
+    li[role="option"],
+    li[role="option"] > div,
+    li[role="option"] span {{
+        background-color: {card_bg} !important;
+        color: {text_primary} !important;
+    }}
+
+    li[role="option"]:hover,
+    li[role="option"]:hover * {{
+        background-color: {tag_bg} !important;
+        color: {accent_blue} !important;
+    }}
+
+    li[aria-selected="true"],
+    li[aria-selected="true"] * {{
+        background-color: {tag_bg} !important;
+        color: {accent_blue} !important;
+        font-weight: 600 !important;
     }}
 
     /* 5. Buttons */
