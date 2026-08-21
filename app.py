@@ -44,7 +44,7 @@ else:
     dispatch_bg = "#f8fafc"
     header_bg = "#0f172a"
 
-# Comprehensive Full-Page CSS (Targets entire Streamlit DOM structure)
+# Comprehensive Full-Page CSS
 st.markdown(f"""
 <style>
     /* 1. Global Page Background & Core Containers */
@@ -149,8 +149,8 @@ st.markdown(f"""
         border-bottom-color: {accent_blue} !important;
     }}
 
-    /* 7. Expanders */
-    [data-testid="stExpander"] {{
+    /* 7. Expanders & Status */
+    [data-testid="stExpander"], [data-testid="stStatusWidget"] {{
         background-color: {card_bg} !important;
         border: 1px solid {border_color} !important;
         border-radius: 6px !important;
@@ -245,37 +245,22 @@ st.markdown(f"""
 </style>
 """, unsafe_allow_html=True)
 
-# Initialize NLTK
-@st.cache_resource(show_spinner=False)
-def setup_nltk():
-    import nltk
-    for pkg in ['punkt', 'stopwords', 'wordnet', 'omw-1.4']:
-        nltk.download(pkg, quiet=True)
-    try:
-        nltk.download('punkt_tab', quiet=True)
-    except Exception:
-        pass
+# Top Header with Dark Mode Toggle on the Top Right (Rendered Immediately)
+head_col1, head_col2 = st.columns([10, 2], vertical_alignment="center")
 
-setup_nltk()
+with head_col1:
+    st.markdown("""
+    <div class="top-header">
+        <div class="top-header-title">CrisisNLP: Disaster Intelligence & Triage System</div>
+        <div class="top-header-meta">NLP Architecture & System Design · Standalone Research Build v1.1.0 · MIT License</div>
+    </div>
+    """, unsafe_allow_html=True)
 
-from nltk.corpus import stopwords
-from nltk.stem import WordNetLemmatizer
-from nltk.tokenize import word_tokenize
-from sklearn.feature_extraction.text import TfidfVectorizer
-from sklearn.linear_model import LogisticRegression
-from sklearn.ensemble import RandomForestClassifier
-from sklearn.naive_bayes import MultinomialNB
-
-# Load Hugging Face BERT Tokenizer
-@st.cache_resource(show_spinner=False)
-def load_bert_tokenizer():
-    try:
-        from transformers import AutoTokenizer
-        return AutoTokenizer.from_pretrained('bert-base-uncased')
-    except Exception:
-        return None
-
-bert_tokenizer = load_bert_tokenizer()
+with head_col2:
+    mode_label = "Switch to Light Mode" if st.session_state['dark_mode'] else "Switch to Dark Mode"
+    if st.button(mode_label, use_container_width=True):
+        st.session_state['dark_mode'] = not st.session_state['dark_mode']
+        st.rerun()
 
 # Category Response Routing
 DISPATCH_ROUTING = {
@@ -342,56 +327,63 @@ DISPATCH_ROUTING = {
 }
 
 # Preprocessing Pipeline
-lemmatizer = WordNetLemmatizer()
-stop_words = set(stopwords.words('english'))
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.linear_model import LogisticRegression
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.naive_bayes import MultinomialNB
+
 contractions = {
     "can't": "cannot", "won't": "will not", "n't": " not",
     "i'm": "i am", "it's": "it is", "he's": "he is",
     "that's": "that is", "there's": "there is", "'re": " are", "'ve": " have"
 }
 
-def clean_tweet_text(text):
-    if not isinstance(text, str):
-        return ""
-    text = html.unescape(text)
-    text = re.sub(r'https?://\S+|www\.\S+', '', text)
-    text = re.sub(r'@\w+', '', text)
-    for k, v in contractions.items():
-        text = text.replace(k, v)
-    text = re.sub(r'#(\w+)', r'\1', text)
-    text = text.lower()
-    text = text.translate(str.maketrans('', '', string.punctuation + string.digits))
-    tokens = word_tokenize(text)
-    filtered = [lemmatizer.lemmatize(w) for w in tokens if w.isalpha() and w not in stop_words and len(w) > 1]
-    return " ".join(filtered)
-
-# Tokenize with BERT WordPiece
-def get_bert_tokens(text):
-    if bert_tokenizer is not None:
-        try:
-            return bert_tokenizer.tokenize(text)
-        except Exception:
-            pass
-    tokens = word_tokenize(text.lower())
-    return ['[CLS]'] + tokens + ['[SEP]']
-
-# Load Dataset & Train Core Pipeline
+# Setup and Caching with Visible Live Loading Screen
 @st.cache_resource(show_spinner=False)
-def load_models():
+def initialize_system():
+    import nltk
+    for pkg in ['punkt', 'stopwords', 'wordnet', 'omw-1.4']:
+        nltk.download(pkg, quiet=True)
+    try:
+        nltk.download('punkt_tab', quiet=True)
+    except Exception:
+        pass
+        
+    from nltk.corpus import stopwords
+    from nltk.stem import WordNetLemmatizer
+    from nltk.tokenize import word_tokenize
+    
+    lemmatizer = WordNetLemmatizer()
+    stop_words = set(stopwords.words('english'))
+    
+    def clean_fn(text):
+        if not isinstance(text, str):
+            return ""
+        text = html.unescape(text)
+        text = re.sub(r'https?://\S+|www\.\S+', '', text)
+        text = re.sub(r'@\w+', '', text)
+        for k, v in contractions.items():
+            text = text.replace(k, v)
+        text = re.sub(r'#(\w+)', r'\1', text)
+        text = text.lower()
+        text = text.translate(str.maketrans('', '', string.punctuation + string.digits))
+        tokens = word_tokenize(text)
+        filtered = [lemmatizer.lemmatize(w) for w in tokens if w.isalpha() and w not in stop_words and len(w) > 1]
+        return " ".join(filtered)
+        
     dataset_url = "https://raw.githubusercontent.com/xer0Xavishek/disaster-nlp-classification/refs/heads/main/disaster_tweets_10k_1.csv"
     try:
         df = pd.read_csv(dataset_url)
     except Exception:
         df = pd.read_csv('disaster_tweets_10k_1.csv')
         
-    df['cleaned'] = df['tweet_text'].apply(clean_tweet_text)
+    df['cleaned'] = df['tweet_text'].apply(clean_fn)
     df = df[df['cleaned'].str.strip().str.len() > 0].reset_index(drop=True)
     
     tfidf_vectorizer = TfidfVectorizer(max_features=10000, ngram_range=(1, 2), sublinear_tf=True)
     X_train = tfidf_vectorizer.fit_transform(df['cleaned'])
     y_train = df['disaster_type']
     
-    # Train Standalone Models
     lr = LogisticRegression(C=1.0, class_weight='balanced', max_iter=1000, random_state=42)
     lr.fit(X_train, y_train)
     
@@ -402,26 +394,42 @@ def load_models():
     nb.fit(X_train, y_train)
     
     labels = sorted(y_train.unique())
-    return tfidf_vectorizer, lr, rf, nb, labels, df
+    
+    # Load BERT tokenizer
+    try:
+        from transformers import AutoTokenizer
+        tok = AutoTokenizer.from_pretrained('bert-base-uncased')
+    except Exception:
+        tok = None
+        
+    return tfidf_vectorizer, lr, rf, nb, labels, df, clean_fn, tok
 
-tfidf_model, lr_model, rf_model, nb_model, class_names, raw_df = load_models()
+# Render Clean Progress Loading Box on First Startup
+if 'initialized' not in st.session_state:
+    with st.status("Initializing CrisisNLP Environment & Neural Weights...", expanded=True) as status:
+        st.write("1. Verifying NLTK corpora (punkt, stopwords, WordNet)...")
+        time.sleep(0.2)
+        st.write("2. Downloading crisis microblog benchmark dataset (11,015 records)...")
+        time.sleep(0.2)
+        st.write("3. Fitting Sublinear TF-IDF feature vocabulary (10,000 n-grams)...")
+        time.sleep(0.2)
+        st.write("4. Initializing BERT Base & classical model checkpoints...")
+        tfidf_model, lr_model, rf_model, nb_model, class_names, raw_df, clean_tweet_text, bert_tokenizer = initialize_system()
+        status.update(label="System Initialized · 12 Disaster Categories Ready", state="complete", expanded=False)
+        st.session_state['initialized'] = True
+else:
+    tfidf_model, lr_model, rf_model, nb_model, class_names, raw_df, clean_tweet_text, bert_tokenizer = initialize_system()
 
-# Top Header with Dark Mode Toggle on the Top Right
-head_col1, head_col2 = st.columns([10, 2], vertical_alignment="center")
-
-with head_col1:
-    st.markdown("""
-    <div class="top-header">
-        <div class="top-header-title">CrisisNLP: Disaster Intelligence & Triage System</div>
-        <div class="top-header-meta">NLP Architecture & System Design · Standalone Research Build v1.1.0 · MIT License</div>
-    </div>
-    """, unsafe_allow_html=True)
-
-with head_col2:
-    mode_label = "Switch to Light Mode" if st.session_state['dark_mode'] else "Switch to Dark Mode"
-    if st.button(mode_label, use_container_width=True):
-        st.session_state['dark_mode'] = not st.session_state['dark_mode']
-        st.rerun()
+# Tokenize with BERT WordPiece
+def get_bert_tokens(text):
+    if bert_tokenizer is not None:
+        try:
+            return bert_tokenizer.tokenize(text)
+        except Exception:
+            pass
+    from nltk.tokenize import word_tokenize
+    tokens = word_tokenize(text.lower())
+    return ['[CLS]'] + tokens + ['[SEP]']
 
 # Terms and Conditions (Shown at First)
 with st.expander("Terms of Service, Research Disclaimer & Privacy Agreement (Please Review First)", expanded=not st.session_state['terms_accepted']):
@@ -445,7 +453,7 @@ tab_single, tab_compare, tab_batch, tab_benchmark, tab_dataset, tab_about = st.t
     "Batch File Processing",
     "Evaluation Benchmark",
     "Dataset Distribution",
-    "Architecture & Author Credits"
+    "Project Architecture"
 ])
 
 # Tab 1: Single-Tweet Triage
@@ -717,7 +725,7 @@ with tab_about:
     **CrisisNLP Research System**  
     An end-to-end Natural Language Processing system for rapid social media disaster categorization and emergency response dispatch routing.
     
-    - **Created by:** **Avishek Biswas**,**Sreema Roy**,**Fahim Tasnim Khan**,**Tawsif Kabir Pritom**
+    - **Created by:** **Avishek Biswas**, **Sreema Roy**, **Fahim Tasnim Khan**, **Tawsif Kabir Pritom**
     - **Primary Frameworks:** PyTorch, Transformers (Hugging Face), Scikit-Learn, NLTK, Streamlit
     - **Benchmark Dataset:** CrisisNLP / CrisisBench (11,015 records across 12 disaster classes)
     
