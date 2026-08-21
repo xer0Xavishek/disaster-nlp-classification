@@ -155,6 +155,7 @@ disaster-nlp-classification/
 ├── README.md                            # Project documentation
 ├── app.py                               # Streamlit web application
 └── report/                              # ACL-style research paper
+    ├── project_report_group-05.pdf      # Compiled final research paper PDF
     ├── report.tex                       # LaTeX source code
     └── custom.bib                       # References
 ```
