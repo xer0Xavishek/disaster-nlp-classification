@@ -9,12 +9,12 @@ import io
 
 # Page Configuration
 st.set_page_config(
-    page_title="CrisisNLP: Emergency Tweet Classification System",
+    page_title="CrisisNLP: Real-Time Disaster Intelligence System",
     layout="wide",
     initial_sidebar_state="expanded"
 )
 
-# Professional CSS Styling (Clean, Academic & Production-Grade)
+# Professional Open-Source CSS Styling
 st.markdown("""
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
@@ -78,26 +78,6 @@ st.markdown("""
         font-size: 1.4rem;
         font-weight: 700;
         color: #0f172a;
-    }
-
-    /* Panel Card */
-    .panel-card {
-        background: #ffffff;
-        border: 1px solid #e2e8f0;
-        border-radius: 8px;
-        padding: 1.5rem;
-        margin-bottom: 1rem;
-    }
-
-    .panel-heading {
-        font-size: 0.95rem;
-        font-weight: 600;
-        color: #0f172a;
-        margin-bottom: 1rem;
-        padding-bottom: 0.5rem;
-        border-bottom: 1px solid #f1f5f9;
-        text-transform: uppercase;
-        letter-spacing: 0.03em;
     }
 
     /* Classification Result Box */
@@ -201,7 +181,7 @@ CATEGORY_DETAILS = {
     },
     'Bombing': {
         'priority': 'Priority 1 (Explosive Ordnance / Mass Casualty)',
-        'agency': 'EOD & Federal Counter-Terrorism',
+        'agency': 'EOD & Homeland Security Units',
         'action': 'Dispatch explosive ordnance disposal units, initiate secondary device sweeps, and activate mass casualty protocols.'
     },
     'Haze': {
@@ -279,16 +259,16 @@ def load_classification_pipeline():
 
 tfidf_model, lr_classifier, rf_classifier, class_names, raw_dataset = load_classification_pipeline()
 
-# Application Header
+# Application Header (Clean Open-Source Branding)
 st.markdown("""
 <div class="top-header">
     <div>
-        <div class="top-header-title">CrisisNLP: Disaster Tweet Classification System</div>
-        <div class="top-header-meta">Department of Computer Science & Engineering · BRAC University · CSE440 Summer 2026</div>
+        <div class="top-header-title">CrisisNLP: Disaster Intelligence & Triage System</div>
+        <div class="top-header-meta">Automated Multi-Class Social Media Crisis Categorization & First-Responder Dispatch Routing</div>
     </div>
     <div style="text-align: right;">
         <span style="background: #1e293b; padding: 0.35rem 0.75rem; border-radius: 4px; font-size: 0.8rem; border: 1px solid #334155;">
-            Group 05 · Section 03
+            Production Build · v1.0.0
         </span>
     </div>
 </div>
@@ -328,10 +308,10 @@ with kpi4:
 # Navigation Tabs
 nav_triage, nav_batch, nav_benchmark, nav_methodology, nav_about = st.tabs([
     "Single-Tweet Triage",
-    "Batch File Classification",
-    "Model Evaluation Benchmark",
+    "Batch File Processing",
+    "Model Benchmark Matrix",
     "Methodology & Preprocessing",
-    "Project & Team Info"
+    "About CrisisNLP"
 ])
 
 # Tab 1: Single-Tweet Triage
@@ -446,8 +426,6 @@ with nav_triage:
                     c_pct = final_probs[i] * 100
                     prob_data.append({"Rank": f"#{rank}", "Category": c_name, "Probability": f"{c_pct:.2f}%", "Weight": final_probs[i]})
                     
-                prob_df = pd.DataFrame(prob_data)
-                
                 for item in prob_data:
                     c_col1, c_col2, c_col3 = st.columns([3, 5, 2])
                     with c_col1:
@@ -463,7 +441,7 @@ with nav_triage:
         else:
             st.info("Provide tweet text on the left panel to generate real-time classification.")
 
-# Tab 2: Batch File Classification
+# Tab 2: Batch File Processing
 with nav_batch:
     st.markdown("#### Batch Tweet Processing")
     st.markdown("Upload a CSV file containing raw tweet text to classify multiple messages simultaneously.")
@@ -515,7 +493,7 @@ with nav_benchmark:
     st.markdown("Quantitative evaluation metrics across 10 model families under a stratified 70/15/15 split:")
     
     benchmark_data = pd.DataFrame([
-        {"Model Family": "Soft-Voting Ensemble (Bonus)", "Feature Representation": "BERT + BiLSTM + LogReg", "Best Configuration": "Weights (0.50, 0.30, 0.20)", "Test Accuracy": "99.88%", "Macro Precision": "0.9988", "Macro Recall": "0.9989", "Macro F1": "0.9989"},
+        {"Model Family": "Soft-Voting Ensemble", "Feature Representation": "BERT + BiLSTM + LogReg", "Best Configuration": "Weights (0.50, 0.30, 0.20)", "Test Accuracy": "99.88%", "Macro Precision": "0.9988", "Macro Recall": "0.9989", "Macro F1": "0.9989"},
         {"Model Family": "BERT Base (Fine-Tuned)", "Feature Representation": "WordPiece Subwords", "Best Configuration": "Config 1 (LR=2e-5, Batch=32, Epochs=3)", "Test Accuracy": "99.82%", "Macro Precision": "0.9983", "Macro Recall": "0.9983", "Macro F1": "0.9983"},
         {"Model Family": "Random Forest", "Feature Representation": "TF-IDF (1-2 ngrams)", "Best Configuration": "Config 3 (n=300, min_split=4)", "Test Accuracy": "98.85%", "Macro Precision": "0.9887", "Macro Recall": "0.9895", "Macro F1": "0.9891"},
         {"Model Family": "Logistic Regression", "Feature Representation": "TF-IDF (1-2 ngrams)", "Best Configuration": "Config 2 (C=1.0, Balanced)", "Test Accuracy": "98.60%", "Macro Precision": "0.9876", "Macro Recall": "0.9874", "Macro F1": "0.9874"},
@@ -529,10 +507,10 @@ with nav_benchmark:
     st.dataframe(benchmark_data, use_container_width=True, hide_index=True)
     
     st.markdown("""
-    **Architectural Findings:**
+    **Key Findings:**
     1. **Transformer Contextual Superiority:** Fine-tuned BERT Base achieved a near-perfect standalone Macro F1 of **0.9983**, misclassifying only 3 out of 1,647 test instances.
     2. **Multi-Model Soft Voting:** Blending BERT self-attention probabilities with BiLSTM sequential modeling and Logistic Regression n-gram representations achieved peak performance of **0.9989 Macro F1**.
-    3. **Edge Deployment Feasibility:** Classical Logistic Regression with sublinear TF-IDF delivers **0.9874 Macro F1** with sub-2ms inference latency, making it the most resource-efficient model for bandwidth-constrained environments.
+    3. **Edge Deployment Feasibility:** Classical Logistic Regression with sublinear TF-IDF delivers **0.9874 Macro F1** with sub-2ms inference latency, making it ideal for low-power edge ingestion.
     """)
 
 # Tab 4: Methodology & Preprocessing
@@ -558,32 +536,25 @@ with nav_methodology:
         - **WordPiece Tokenization:** Transformer subword decomposition handling Out-of-Vocabulary (OOV) tokens without information loss.
         """)
 
-# Tab 5: Project & Team Info
+# Tab 5: About CrisisNLP (Clean Open-Source Project Profile)
 with nav_about:
-    st.markdown("#### Project Metadata & Research Team")
+    st.markdown("#### About CrisisNLP")
     st.markdown("""
-    - **Course:** CSE440 — Natural Language Processing
-    - **Semester:** Summer 2026
-    - **Section:** 03
-    - **Group:** 05
-    - **Department:** Department of Computer Science & Engineering
-    - **Institution:** BRAC University
+    **CrisisNLP** is an open-source NLP system designed to classify social media communications during emergencies and route prioritized response directives to humanitarian agencies and emergency services in real time.
     
-    **Author Roster:**
-    1. **Avishek Biswas** — Student ID: `23201427` (Lead Author)
-    2. **Sreema Roy** — Student ID: `23201444`
-    3. **Fahim Tasnim Khan** — Student ID: `23201087`
-    4. **Tawsif Kabir Pritom** — Student ID: `23201231`
+    **Corpus Source:**
+    - Benchmark dataset derived from CrisisNLP and CrisisBench disaster repositories.
+    - 11,015 human-annotated microblog records across 12 distinct incident categories.
     
-    **Repository & Reproducibility:**
-    - GitHub: [https://github.com/xer0Xavishek/disaster-nlp-classification](https://github.com/xer0Xavishek/disaster-nlp-classification)
-    - Google Colab Master Notebook: [disaster_nlp_classification.ipynb](https://colab.research.google.com/github/xer0Xavishek/disaster-nlp-classification/blob/main/disaster_nlp_classification.ipynb)
-    - ACL Research Paper: `report/project_report_group-05.pdf`
+    **Repository & Master Notebook:**
+    - **GitHub Repository:** [https://github.com/xer0Xavishek/disaster-nlp-classification](https://github.com/xer0Xavishek/disaster-nlp-classification)
+    - **Master Google Colab Notebook:** [disaster_nlp_classification.ipynb](https://colab.research.google.com/github/xer0Xavishek/disaster-nlp-classification/blob/main/disaster_nlp_classification.ipynb)
+    - **License:** MIT Open-Source License
     """)
 
 # Footer
 st.markdown("""
 <div style="text-align: center; margin-top: 3rem; padding-top: 1rem; border-top: 1px solid #e2e8f0; color: #94a3b8; font-size: 0.8rem;">
-    CrisisNLP Triage System · CSE440 NLP Final Term Project · BRAC University · Group 05
+    CrisisNLP: Disaster Intelligence & Triage System · Open Source Project
 </div>
 """, unsafe_allow_html=True)
