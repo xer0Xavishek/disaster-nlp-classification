@@ -20,20 +20,22 @@ if 'dark_mode' not in st.session_state:
 if 'terms_accepted' not in st.session_state:
     st.session_state['terms_accepted'] = False
 
-# Dynamic Theme Colors
+# Dynamic Complete Theme CSS Variables
 if st.session_state['dark_mode']:
     bg_color = "#0b0f19"
     card_bg = "#111827"
+    input_bg = "#1f2937"
     border_color = "#374151"
     text_primary = "#f9fafb"
     text_secondary = "#9ca3af"
     accent_blue = "#60a5fa"
     tag_bg = "#1f2937"
-    dispatch_bg = "#1f2937"
+    dispatch_bg = "#1e293b"
     header_bg = "#030712"
 else:
     bg_color = "#f8fafc"
     card_bg = "#ffffff"
+    input_bg = "#ffffff"
     border_color = "#e2e8f0"
     text_primary = "#0f172a"
     text_secondary = "#64748b"
@@ -42,25 +44,126 @@ else:
     dispatch_bg = "#f8fafc"
     header_bg = "#0f172a"
 
-# Modern CSS Injection
+# Comprehensive Full-Page CSS (Targets entire Streamlit DOM structure)
 st.markdown(f"""
 <style>
-    html, body, [class*="css"] {{
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-        color: {text_primary};
-        background-color: {bg_color};
+    /* 1. Global Page Background & Core Containers */
+    [data-testid="stAppViewContainer"],
+    [data-testid="stHeader"],
+    [data-testid="stToolbar"],
+    .stApp {{
+        background-color: {bg_color} !important;
+        color: {text_primary} !important;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif !important;
     }}
     
     .main .block-container {{
-        padding-top: 1.25rem;
-        padding-bottom: 2.5rem;
-        max-width: 1240px;
+        padding-top: 1.25rem !important;
+        padding-bottom: 2.5rem !important;
+        max-width: 1240px !important;
+        background-color: {bg_color} !important;
     }}
 
-    /* Top Executive Header */
+    /* 2. Global Typography & Headings */
+    h1, h2, h3, h4, h5, h6, p, span, label, div {{
+        color: {text_primary} !important;
+    }}
+
+    .text-muted {{
+        color: {text_secondary} !important;
+    }}
+
+    /* 3. Text Areas & Input Boxes */
+    textarea,
+    input,
+    [data-testid="stTextArea"] textarea,
+    [data-testid="stTextInput"] input {{
+        background-color: {input_bg} !important;
+        color: {text_primary} !important;
+        border: 1px solid {border_color} !important;
+        border-radius: 4px !important;
+    }}
+    
+    textarea:focus, input:focus {{
+        border-color: {accent_blue} !important;
+        box-shadow: 0 0 0 1px {accent_blue} !important;
+    }}
+
+    /* 4. Selectboxes & Dropdowns */
+    [data-baseweb="select"],
+    [data-baseweb="select"] > div {{
+        background-color: {input_bg} !important;
+        color: {text_primary} !important;
+        border-color: {border_color} !important;
+    }}
+    
+    [data-baseweb="popover"],
+    [data-baseweb="menu"] {{
+        background-color: {card_bg} !important;
+        border: 1px solid {border_color} !important;
+    }}
+    
+    [data-baseweb="menu"] li {{
+        background-color: {card_bg} !important;
+        color: {text_primary} !important;
+    }}
+
+    /* 5. Buttons */
+    .stButton > button {{
+        background-color: {card_bg} !important;
+        color: {text_primary} !important;
+        border: 1px solid {border_color} !important;
+        border-radius: 4px !important;
+    }}
+    
+    .stButton > button:hover {{
+        border-color: {accent_blue} !important;
+        color: {accent_blue} !important;
+    }}
+
+    .stButton > button[kind="primary"] {{
+        background-color: #2563eb !important;
+        color: #ffffff !important;
+        border: 1px solid #1d4ed8 !important;
+    }}
+    
+    .stButton > button[kind="primary"]:hover {{
+        background-color: #1d4ed8 !important;
+        color: #ffffff !important;
+    }}
+
+    /* 6. Tabs */
+    [data-baseweb="tab-list"] {{
+        background-color: transparent !important;
+        border-bottom: 1px solid {border_color} !important;
+    }}
+
+    [data-baseweb="tab"] {{
+        color: {text_secondary} !important;
+        background-color: transparent !important;
+    }}
+
+    [aria-selected="true"] {{
+        color: {accent_blue} !important;
+        font-weight: 700 !important;
+        border-bottom-color: {accent_blue} !important;
+    }}
+
+    /* 7. Expanders */
+    [data-testid="stExpander"] {{
+        background-color: {card_bg} !important;
+        border: 1px solid {border_color} !important;
+        border-radius: 6px !important;
+    }}
+    
+    [data-testid="stExpander"] summary {{
+        color: {text_primary} !important;
+    }}
+
+    /* 8. Top Executive Header */
     .top-header {{
         background: {header_bg};
-        color: #ffffff;
+        color: #ffffff !important;
         padding: 1.15rem 1.5rem;
         border-radius: 6px;
         margin-bottom: 1.25rem;
@@ -72,16 +175,16 @@ st.markdown(f"""
         font-weight: 700;
         letter-spacing: -0.02em;
         margin: 0;
-        color: #ffffff;
+        color: #ffffff !important;
     }}
 
     .top-header-meta {{
         font-size: 0.82rem;
-        color: #94a3b8;
+        color: #94a3b8 !important;
         margin-top: 0.2rem;
     }}
 
-    /* Result Panel */
+    /* 9. Result Box */
     .result-panel {{
         background: {card_bg};
         border: 1px solid {border_color};
@@ -92,12 +195,12 @@ st.markdown(f"""
     .result-category {{
         font-size: 1.45rem;
         font-weight: 800;
-        color: {text_primary};
+        color: {text_primary} !important;
     }}
 
     .result-score {{
         font-size: 0.9rem;
-        color: {accent_blue};
+        color: {accent_blue} !important;
         font-weight: 600;
         margin-top: 0.2rem;
     }}
@@ -109,11 +212,11 @@ st.markdown(f"""
         padding: 0.85rem 1rem;
         margin-top: 0.85rem;
         font-size: 0.85rem;
-        color: {text_primary};
+        color: {text_primary} !important;
         line-height: 1.5;
     }}
 
-    /* Token Tags */
+    /* 10. Token Tags */
     .token-item {{
         font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
         font-size: 0.8rem;
@@ -121,7 +224,7 @@ st.markdown(f"""
         border: 1px solid {border_color};
         padding: 0.2rem 0.45rem;
         border-radius: 3px;
-        color: {text_primary};
+        color: {text_primary} !important;
         margin-right: 0.3rem;
         margin-bottom: 0.3rem;
         display: inline-block;
@@ -130,11 +233,11 @@ st.markdown(f"""
     .bert-tag {{
         font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
         font-size: 0.8rem;
-        background: rgba(37, 99, 235, 0.12);
-        border: 1px solid rgba(37, 99, 235, 0.3);
+        background: rgba(37, 99, 235, 0.18) !important;
+        border: 1px solid rgba(37, 99, 235, 0.4) !important;
         padding: 0.2rem 0.45rem;
         border-radius: 3px;
-        color: {accent_blue};
+        color: {accent_blue} !important;
         margin-right: 0.3rem;
         margin-bottom: 0.3rem;
         display: inline-block;
@@ -310,12 +413,12 @@ with head_col1:
     st.markdown("""
     <div class="top-header">
         <div class="top-header-title">CrisisNLP: Disaster Intelligence & Triage System</div>
-        <div class="top-header-meta">NLP Architecture & System Design by Avishek Biswas · Production Build v1.1.0 · MIT License</div>
+        <div class="top-header-meta">NLP Architecture & System Design by Avishek Biswas · Standalone Research Build v1.1.0 · MIT License</div>
     </div>
     """, unsafe_allow_html=True)
 
 with head_col2:
-    mode_label = "Switch to Light" if st.session_state['dark_mode'] else "Switch to Dark"
+    mode_label = "Switch to Light Mode" if st.session_state['dark_mode'] else "Switch to Dark Mode"
     if st.button(mode_label, use_container_width=True):
         st.session_state['dark_mode'] = not st.session_state['dark_mode']
         st.rerun()
@@ -434,7 +537,7 @@ with tab_single:
                 
                 st.markdown(f"""
                 <div class="result-panel">
-                    <div style="font-size: 0.75rem; color: {text_secondary}; text-transform: uppercase; font-weight: 600;">Predicted Disaster Category</div>
+                    <div style="font-size: 0.75rem; text-transform: uppercase; font-weight: 600;" class="text-muted">Predicted Disaster Category</div>
                     <div class="result-category">{predicted_class}</div>
                     <div class="result-score">Confidence: <strong>{confidence:.2f}%</strong> | Model: <strong>{engine_choice.split('(')[0].strip()}</strong> | Latency: <strong>{t_exec:.2f} ms</strong></div>
                     <div class="dispatch-card">
@@ -626,7 +729,7 @@ with tab_about:
 
 # Minimalist Footer with Credits
 st.markdown("""
-<div style="text-align: center; margin-top: 2.5rem; padding-top: 1rem; border-top: 1px solid #e2e8f0; color: #64748b; font-size: 0.8rem;">
+<div style="text-align: center; margin-top: 2.5rem; padding-top: 1rem; border-top: 1px solid #374151; color: #64748b; font-size: 0.8rem;">
     CrisisNLP: Disaster Text Classification System · Built & Engineered by <strong>Avishek Biswas</strong> · MIT Open Source License
 </div>
 """, unsafe_allow_html=True)
