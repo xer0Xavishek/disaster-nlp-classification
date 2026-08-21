@@ -135,13 +135,12 @@ cd disaster-nlp-classification
 
 # Create and activate a virtual environment
 python -m venv .venv
-source .venv/bin/activate  # On Windows: .venv\Scripts\activate
-
-# Install dependencies
-pip install -r requirements.txt
-
-# Run the Streamlit web application
+# Option A: Activate virtual environment and run
+source .venv/bin/activate  # On Windows: .\.venv\Scripts\Activate.ps1
 streamlit run app.py
+
+# Option B: Direct one-line command (Windows PowerShell)
+.\.venv\Scripts\python.exe -m streamlit run app.py
 ```
 
 ---
