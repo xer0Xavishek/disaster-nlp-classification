@@ -266,62 +266,50 @@ with head_col2:
 DISPATCH_ROUTING = {
     'Earthquake': {
         'priority': 'Priority 1 (Immediate Life Safety)',
-        'agency': 'Urban Search & Rescue (USAR)',
         'action': 'Deploy structural assessment teams, acoustic listening units, and canine search teams to damaged zones.'
     },
     'Flood': {
         'priority': 'Priority 1 (Immediate Life Safety)',
-        'agency': 'Water Rescue & Maritime Response',
         'action': 'Dispatch swift-water rescue craft, inflatable boat teams, and establish high-ground evacuation points.'
     },
     'Wildfire': {
         'priority': 'Priority 1 (Immediate Life Safety)',
-        'agency': 'Forestry & Regional Fire Units',
         'action': 'Issue perimeter evacuation zones, dispatch aerial water drops, and establish fuel-break defense lines.'
     },
     'Typhoon': {
         'priority': 'Priority 2 (Civil Defense & Infrastructure)',
-        'agency': 'Meteorological & Civil Defense',
         'action': 'Issue coastal storm surge warnings, open municipal emergency shelters, and pre-position emergency relief stocks.'
     },
     'Transportation Accident': {
         'priority': 'Priority 2 (Paramedic & Traffic Management)',
-        'agency': 'Highway Patrol & Paramedic Corps',
         'action': 'Dispatch heavy hydraulic extrication units, trauma ambulances, and establish traffic diversions.'
     },
     'Explosion': {
         'priority': 'Priority 1 (Immediate Life Safety / HazMat)',
-        'agency': 'Hazardous Materials & Trauma Battalion',
         'action': 'Enforce safety cordon, assess chemical contamination risks, and route burn and blast trauma patients.'
     },
     'Shooting': {
         'priority': 'Priority 1 (Law Enforcement Tactical)',
-        'agency': 'Tactical Police & Emergency Medical',
         'action': 'Deploy active threat containment units, lock down public perimeter, and establish casualty collection points.'
     },
     'Bombing': {
         'priority': 'Priority 1 (Explosive Ordnance / Mass Casualty)',
-        'agency': 'EOD & Homeland Security Units',
         'action': 'Dispatch explosive ordnance disposal units, initiate secondary device sweeps, and activate mass casualty protocols.'
     },
     'Haze': {
         'priority': 'Priority 3 (Public Health Advisory)',
-        'agency': 'Environmental & Public Health Directorate',
         'action': 'Issue particulate air quality advisories (AQI), distribute N95 filtration masks, and protect vulnerable demographics.'
     },
     'Meteor': {
         'priority': 'Priority 3 (Scientific & Geological Assessment)',
-        'agency': 'National Space & Geological Survey',
         'action': 'Triangulate trajectory data, verify ground impact coordinates, and inspect potential seismic shockwaves.'
     },
     'Building Collapse': {
         'priority': 'Priority 1 (Heavy Search & Rescue)',
-        'agency': 'Heavy USAR & Civil Engineering',
         'action': 'Mobilize crane extrication units, fiber-optic search cameras, and structural shoring equipment.'
     },
     'Fire': {
         'priority': 'Priority 1 (Fire Suppression)',
-        'agency': 'Municipal Fire & Rescue Service',
         'action': 'Route high-rise ladder trucks, high-output pumper engines, and establish hydrant supply lines.'
     }
 }
@@ -541,7 +529,7 @@ with tab_single:
                 top_idx = int(np.argmax(final_p))
                 predicted_class = class_names[top_idx]
                 confidence = final_p[top_idx] * 100
-                routing = DISPATCH_ROUTING.get(predicted_class, {'priority': 'Priority 2', 'agency': 'Civil Defense', 'action': 'Standard assessment.'})
+                routing = DISPATCH_ROUTING.get(predicted_class, {'priority': 'Priority 2', 'action': 'Standard assessment.'})
                 
                 st.markdown(f"""
                 <div class="result-panel">
@@ -550,7 +538,6 @@ with tab_single:
                     <div class="result-score">Confidence: <strong>{confidence:.2f}%</strong> | Model: <strong>{engine_choice.split('(')[0].strip()}</strong> | Latency: <strong>{t_exec:.2f} ms</strong></div>
                     <div class="dispatch-card">
                         <div><strong>Priority Level:</strong> {routing['priority']}</div>
-                        <div><strong>Lead Agency:</strong> {routing['agency']}</div>
                         <div><strong>Action Protocol:</strong> {routing['action']}</div>
                     </div>
                 </div>
@@ -666,9 +653,9 @@ with tab_batch:
                     batch_df['Predicted_Disaster'] = b_preds
                     batch_df['Confidence_Score'] = np.round(b_confs, 2)
                     batch_df['Priority_Tier'] = [DISPATCH_ROUTING.get(p, {}).get('priority', 'Priority 2') for p in b_preds]
-                    batch_df['Assigned_Unit'] = [DISPATCH_ROUTING.get(p, {}).get('agency', 'Civil Defense') for p in b_preds]
+                    batch_df['Action_Protocol'] = [DISPATCH_ROUTING.get(p, {}).get('action', 'Standard emergency assessment.') for p in b_preds]
                 
-                st.dataframe(batch_df[[target_col, 'Predicted_Disaster', 'Confidence_Score', 'Priority_Tier', 'Assigned_Unit']].head(25), use_container_width=True)
+                st.dataframe(batch_df[[target_col, 'Predicted_Disaster', 'Confidence_Score', 'Priority_Tier', 'Action_Protocol']].head(25), use_container_width=True)
                 
                 out_buf = io.StringIO()
                 batch_df.to_csv(out_buf, index=False)
