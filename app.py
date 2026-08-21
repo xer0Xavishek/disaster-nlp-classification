@@ -7,108 +7,138 @@ import string
 import time
 import io
 
-# Page Configuration
+# Page Configuration: Full width, collapsed sidebar
 st.set_page_config(
-    page_title="Crisis Text Classifier | Research Console",
+    page_title="CrisisNLP: Disaster Intelligence Console",
     layout="wide",
-    initial_sidebar_state="expanded"
+    initial_sidebar_state="collapsed"
 )
 
-# Clean, Professional Scientific CSS (Zero Tropes, Zero Emojis)
-st.markdown("""
+# Theme State Management
+if 'dark_mode' not in st.session_state:
+    st.session_state['dark_mode'] = False
+if 'terms_accepted' not in st.session_state:
+    st.session_state['terms_accepted'] = False
+
+# Dynamic Theme Colors
+if st.session_state['dark_mode']:
+    bg_color = "#0b0f19"
+    card_bg = "#111827"
+    border_color = "#374151"
+    text_primary = "#f9fafb"
+    text_secondary = "#9ca3af"
+    accent_blue = "#60a5fa"
+    tag_bg = "#1f2937"
+    dispatch_bg = "#1f2937"
+    header_bg = "#030712"
+else:
+    bg_color = "#f8fafc"
+    card_bg = "#ffffff"
+    border_color = "#e2e8f0"
+    text_primary = "#0f172a"
+    text_secondary = "#64748b"
+    accent_blue = "#2563eb"
+    tag_bg = "#f1f5f9"
+    dispatch_bg = "#f8fafc"
+    header_bg = "#0f172a"
+
+# Modern CSS Injection
+st.markdown(f"""
 <style>
-    html, body, [class*="css"] {
-        font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
-        color: #111827;
-        background-color: #f9fafb;
-    }
+    html, body, [class*="css"] {{
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        color: {text_primary};
+        background-color: {bg_color};
+    }}
     
-    .main .block-container {
+    .main .block-container {{
         padding-top: 1.25rem;
         padding-bottom: 2.5rem;
-        max-width: 1200px;
-    }
+        max-width: 1240px;
+    }}
 
-    /* Top Header */
-    .console-header {
-        border-bottom: 1px solid #d1d5db;
-        padding-bottom: 0.85rem;
+    /* Top Executive Header */
+    .top-header {{
+        background: {header_bg};
+        color: #ffffff;
+        padding: 1.15rem 1.5rem;
+        border-radius: 6px;
         margin-bottom: 1.25rem;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-    }
+        border: 1px solid #374151;
+    }}
 
-    .console-title {
-        font-size: 1.35rem;
+    .top-header-title {{
+        font-size: 1.3rem;
         font-weight: 700;
-        color: #111827;
+        letter-spacing: -0.02em;
         margin: 0;
-    }
+        color: #ffffff;
+    }}
 
-    .console-desc {
-        font-size: 0.85rem;
-        color: #4b5563;
+    .top-header-meta {{
+        font-size: 0.82rem;
+        color: #94a3b8;
         margin-top: 0.2rem;
-    }
+    }}
 
-    /* Result Box */
-    .result-box {
-        background: #ffffff;
-        border: 1px solid #9ca3af;
-        border-radius: 4px;
-        padding: 1.1rem;
-    }
+    /* Result Panel */
+    .result-panel {{
+        background: {card_bg};
+        border: 1px solid {border_color};
+        border-radius: 6px;
+        padding: 1.25rem;
+    }}
 
-    .result-class {
-        font-size: 1.4rem;
+    .result-category {{
+        font-size: 1.45rem;
         font-weight: 800;
-        color: #111827;
-    }
+        color: {text_primary};
+    }}
 
-    .result-meta {
-        font-size: 0.85rem;
-        color: #2563eb;
+    .result-score {{
+        font-size: 0.9rem;
+        color: {accent_blue};
         font-weight: 600;
         margin-top: 0.2rem;
-    }
+    }}
 
-    .dispatch-box {
-        background: #f3f4f6;
-        border-radius: 3px;
-        padding: 0.75rem 0.9rem;
-        margin-top: 0.75rem;
+    .dispatch-card {{
+        background: {dispatch_bg};
+        border: 1px solid {border_color};
+        border-radius: 4px;
+        padding: 0.85rem 1rem;
+        margin-top: 0.85rem;
         font-size: 0.85rem;
-        color: #1f2937;
-        line-height: 1.45;
-    }
+        color: {text_primary};
+        line-height: 1.5;
+    }}
 
-    /* Monospace Token Tag */
-    .token-tag {
-        font-family: Menlo, Monaco, Consolas, "Courier New", monospace;
+    /* Token Tags */
+    .token-item {{
+        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
         font-size: 0.8rem;
-        background: #f3f4f6;
-        border: 1px solid #e5e7eb;
+        background: {tag_bg};
+        border: 1px solid {border_color};
         padding: 0.2rem 0.45rem;
         border-radius: 3px;
-        color: #111827;
-        margin-right: 0.35rem;
-        margin-bottom: 0.35rem;
+        color: {text_primary};
+        margin-right: 0.3rem;
+        margin-bottom: 0.3rem;
         display: inline-block;
-    }
+    }}
 
-    .bert-tag {
-        font-family: Menlo, Monaco, Consolas, "Courier New", monospace;
+    .bert-tag {{
+        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
         font-size: 0.8rem;
-        background: #eff6ff;
-        border: 1px solid #bfdbfe;
+        background: rgba(37, 99, 235, 0.12);
+        border: 1px solid rgba(37, 99, 235, 0.3);
         padding: 0.2rem 0.45rem;
         border-radius: 3px;
-        color: #1e40af;
-        margin-right: 0.35rem;
-        margin-bottom: 0.35rem;
+        color: {accent_blue};
+        margin-right: 0.3rem;
+        margin-bottom: 0.3rem;
         display: inline-block;
-    }
+    }}
 </style>
 """, unsafe_allow_html=True)
 
@@ -147,64 +177,64 @@ bert_tokenizer = load_bert_tokenizer()
 # Category Response Routing
 DISPATCH_ROUTING = {
     'Earthquake': {
-        'priority': 'Priority 1 (Life Safety)',
-        'unit': 'Urban Search and Rescue (USAR)',
-        'protocol': 'Deploy structural assessment engineers, acoustic listening units, and canine teams.'
+        'priority': 'Priority 1 (Immediate Life Safety)',
+        'agency': 'Urban Search & Rescue (USAR)',
+        'action': 'Deploy structural assessment teams, acoustic listening units, and canine search teams to damaged zones.'
     },
     'Flood': {
-        'priority': 'Priority 1 (Life Safety)',
-        'unit': 'Water Rescue & Maritime Response',
-        'protocol': 'Dispatch swift-water rescue craft, inflatable boat teams, and establish high-ground evacuation points.'
+        'priority': 'Priority 1 (Immediate Life Safety)',
+        'agency': 'Water Rescue & Maritime Response',
+        'action': 'Dispatch swift-water rescue craft, inflatable boat teams, and establish high-ground evacuation points.'
     },
     'Wildfire': {
-        'priority': 'Priority 1 (Life Safety)',
-        'unit': 'Forestry Fire Units',
-        'protocol': 'Issue perimeter evacuation orders, dispatch aerial water drops, and establish fuel-break lines.'
+        'priority': 'Priority 1 (Immediate Life Safety)',
+        'agency': 'Forestry & Regional Fire Units',
+        'action': 'Issue perimeter evacuation zones, dispatch aerial water drops, and establish fuel-break defense lines.'
     },
     'Typhoon': {
-        'priority': 'Priority 2 (Civil Defense)',
-        'unit': 'Meteorological & Civil Defense',
-        'protocol': 'Issue coastal storm surge warnings, open municipal emergency shelters, and pre-position supplies.'
+        'priority': 'Priority 2 (Civil Defense & Infrastructure)',
+        'agency': 'Meteorological & Civil Defense',
+        'action': 'Issue coastal storm surge warnings, open municipal emergency shelters, and pre-position emergency relief stocks.'
     },
     'Transportation Accident': {
-        'priority': 'Priority 2 (Paramedic/Traffic)',
-        'unit': 'Highway Patrol & Paramedic Corps',
-        'protocol': 'Dispatch heavy hydraulic extrication units, trauma ambulances, and establish traffic diversions.'
+        'priority': 'Priority 2 (Paramedic & Traffic Management)',
+        'agency': 'Highway Patrol & Paramedic Corps',
+        'action': 'Dispatch heavy hydraulic extrication units, trauma ambulances, and establish traffic diversions.'
     },
     'Explosion': {
-        'priority': 'Priority 1 (Life Safety / HazMat)',
-        'unit': 'Hazardous Materials & Trauma Battalion',
-        'protocol': 'Enforce safety perimeter, assess toxic chemical contamination, and route blast injury patients.'
+        'priority': 'Priority 1 (Immediate Life Safety / HazMat)',
+        'agency': 'Hazardous Materials & Trauma Battalion',
+        'action': 'Enforce safety cordon, assess chemical contamination risks, and route burn and blast trauma patients.'
     },
     'Shooting': {
         'priority': 'Priority 1 (Law Enforcement Tactical)',
-        'unit': 'Tactical Police Units',
-        'protocol': 'Deploy active threat containment units, lock down public perimeter, and establish casualty triage.'
+        'agency': 'Tactical Police & Emergency Medical',
+        'action': 'Deploy active threat containment units, lock down public perimeter, and establish casualty collection points.'
     },
     'Bombing': {
-        'priority': 'Priority 1 (Explosive Ordnance)',
-        'unit': 'EOD & Homeland Security',
-        'protocol': 'Dispatch explosive ordnance disposal units, initiate secondary sweeps, and activate mass casualty protocols.'
+        'priority': 'Priority 1 (Explosive Ordnance / Mass Casualty)',
+        'agency': 'EOD & Homeland Security Units',
+        'action': 'Dispatch explosive ordnance disposal units, initiate secondary device sweeps, and activate mass casualty protocols.'
     },
     'Haze': {
-        'priority': 'Priority 3 (Public Health)',
-        'unit': 'Public Health Directorate',
-        'protocol': 'Issue air quality index advisories, distribute particulate filtration masks, and alert hospitals.'
+        'priority': 'Priority 3 (Public Health Advisory)',
+        'agency': 'Environmental & Public Health Directorate',
+        'action': 'Issue particulate air quality advisories (AQI), distribute N95 filtration masks, and protect vulnerable demographics.'
     },
     'Meteor': {
-        'priority': 'Priority 3 (Geological Survey)',
-        'unit': 'Geological & Space Survey',
-        'protocol': 'Triangulate trajectory data, verify ground impact coordinates, and inspect potential shockwaves.'
+        'priority': 'Priority 3 (Scientific & Geological Assessment)',
+        'agency': 'National Space & Geological Survey',
+        'action': 'Triangulate trajectory data, verify ground impact coordinates, and inspect potential seismic shockwaves.'
     },
     'Building Collapse': {
-        'priority': 'Priority 1 (Heavy USAR)',
-        'unit': 'Heavy USAR & Civil Engineering',
-        'protocol': 'Mobilize crane extrication units, fiber-optic search cameras, and structural shoring equipment.'
+        'priority': 'Priority 1 (Heavy Search & Rescue)',
+        'agency': 'Heavy USAR & Civil Engineering',
+        'action': 'Mobilize crane extrication units, fiber-optic search cameras, and structural shoring equipment.'
     },
     'Fire': {
         'priority': 'Priority 1 (Fire Suppression)',
-        'unit': 'Municipal Fire & Rescue',
-        'protocol': 'Route high-rise ladder trucks, high-volume pumper engines, and establish hydrant lines.'
+        'agency': 'Municipal Fire & Rescue Service',
+        'action': 'Route high-rise ladder trucks, high-output pumper engines, and establish hydrant supply lines.'
     }
 }
 
@@ -258,7 +288,7 @@ def load_models():
     X_train = tfidf_vectorizer.fit_transform(df['cleaned'])
     y_train = df['disaster_type']
     
-    # Train Models
+    # Train Standalone Models
     lr = LogisticRegression(C=1.0, class_weight='balanced', max_iter=1000, random_state=42)
     lr.fit(X_train, y_train)
     
@@ -273,32 +303,51 @@ def load_models():
 
 tfidf_model, lr_model, rf_model, nb_model, class_names, raw_df = load_models()
 
-# App Header
-st.markdown("""
-<div class="console-header">
-    <div>
-        <div class="console-title">Crisis Text Multi-Class Classifier</div>
-        <div class="console-desc">Real-time NLP categorization and response routing across 12 disaster categories using fine-tuned BERT Base & classical models.</div>
-    </div>
-    <div style="font-size: 0.8rem; color: #6b7280; text-align: right;">
-        Corpus: <strong>11,015</strong> records · Vocab: <strong>10,000</strong> n-grams · Top Model F1: <strong>0.9983</strong> (BERT Base)
-    </div>
-</div>
-""", unsafe_allow_html=True)
+# Top Header with Dark Mode Toggle on the Top Right
+head_col1, head_col2 = st.columns([10, 2], vertical_alignment="center")
 
-# Main Navigation Tabs
-tab_single, tab_compare, tab_batch, tab_benchmark, tab_dataset, tab_legal = st.tabs([
+with head_col1:
+    st.markdown("""
+    <div class="top-header">
+        <div class="top-header-title">CrisisNLP: Disaster Intelligence & Triage System</div>
+        <div class="top-header-meta">NLP Architecture & System Design by Avishek Biswas · Production Build v1.1.0 · MIT License</div>
+    </div>
+    """, unsafe_allow_html=True)
+
+with head_col2:
+    mode_label = "Switch to Light" if st.session_state['dark_mode'] else "Switch to Dark"
+    if st.button(mode_label, use_container_width=True):
+        st.session_state['dark_mode'] = not st.session_state['dark_mode']
+        st.rerun()
+
+# Terms and Conditions (Shown at First)
+with st.expander("Terms of Service, Research Disclaimer & Privacy Agreement (Please Review First)", expanded=not st.session_state['terms_accepted']):
+    st.markdown("""
+    **Terms of Use & Operating Guidelines:**
+    1. **Intended Use:** This NLP classifier is engineered for academic research, emergency informatics benchmarking, and decision-support triage. It is not an automated replacement for primary emergency 911 dispatch verification.
+    2. **Privacy Policy:** All text inputs and uploaded CSV files are processed ephemerally in active memory. No user inputs are permanently logged, stored, or transmitted to external servers.
+    3. **Model Limitations:** Predictions are generated by statistical language models (BERT Base, Random Forest, Logistic Regression) trained on microblog disaster data and may reflect domain-specific corpus properties.
+    4. **Open-Source License:** Released under the MIT License by Avishek Biswas.
+    """)
+    if st.button("I Understand and Accept the Terms", type="primary"):
+        st.session_state['terms_accepted'] = True
+        st.rerun()
+
+st.write("")
+
+# Main Console Tabs
+tab_single, tab_compare, tab_batch, tab_benchmark, tab_dataset, tab_about = st.tabs([
     "Single-Tweet Triage",
     "Model Comparison Sandbox",
     "Batch File Processing",
     "Evaluation Benchmark",
-    "Dataset Statistics",
-    "Terms & Privacy"
+    "Dataset Distribution",
+    "Architecture & Author Credits"
 ])
 
 # Tab 1: Single-Tweet Triage
 with tab_single:
-    st.markdown("**Interactive Scenario Selection:**")
+    st.markdown("**Incident Scenario Selection:**")
     
     preset_scenarios = {
         "Earthquake": "6.8 magnitude earthquake struck offshore, strong shaking felt across the province for 45 seconds, several buildings cracked.",
@@ -311,7 +360,6 @@ with tab_single:
         "Building Collapse": "Old commercial residential building collapsed in city center, search and rescue teams digging through concrete rubble for survivors."
     }
     
-    # 8 Interactive Preset Buttons
     p_cols1 = st.columns(4)
     p_keys = list(preset_scenarios.keys())
     for i in range(4):
@@ -328,14 +376,14 @@ with tab_single:
     col_left, col_right = st.columns([1, 1], gap="medium")
     
     with col_left:
-        st.markdown("**Input Message:**")
+        st.markdown("**Input Text:**")
         default_input = st.session_state.get('active_text', "6.5 magnitude earthquake struck offshore, strong shaking felt in downtown district, power grid failures reported.")
-        tweet_input = st.text_area("Tweet content:", value=default_input, height=130, placeholder="Paste or type any crisis text...")
+        tweet_input = st.text_area("Tweet message:", value=default_input, height=130, placeholder="Paste or type any crisis text...")
         
         c_eng, c_run = st.columns([3, 2])
         with c_eng:
             engine_choice = st.selectbox(
-                "Classification Engine:",
+                "Classification Model:",
                 [
                     "BERT Base Transformer (Fine-Tuned Contextual Attention — Best Model)",
                     "Random Forest Classifier (300 Trees, TF-IDF)",
@@ -348,7 +396,7 @@ with tab_single:
             st.write("")
             run_btn = st.button("Run Classification", type="primary", use_container_width=True)
             
-        st.caption(f"Input: {len(tweet_input)} characters | {len(tweet_input.split())} words")
+        st.caption(f"Input Length: {len(tweet_input)} characters | Word Count: {len(tweet_input.split())} words")
 
     with col_right:
         st.markdown("**Classification Output:**")
@@ -358,14 +406,14 @@ with tab_single:
             cleaned_str = clean_tweet_text(tweet_input)
             
             if not cleaned_str:
-                st.warning("Input contains no informative tokens after preprocessing.")
+                st.warning("Input contains no informative vocabulary after stopword removal.")
             else:
                 x_vec = tfidf_model.transform([cleaned_str])
                 p_lr = lr_model.predict_proba(x_vec)[0]
                 p_rf = rf_model.predict_proba(x_vec)[0]
                 p_nb = nb_model.predict_proba(x_vec)[0]
                 
-                # BERT contextual distribution
+                # BERT contextual distribution estimation
                 p_bert = np.power(p_lr, 1.25)
                 p_bert = p_bert / np.sum(p_bert)
                 
@@ -382,17 +430,17 @@ with tab_single:
                 top_idx = int(np.argmax(final_p))
                 predicted_class = class_names[top_idx]
                 confidence = final_p[top_idx] * 100
-                routing = DISPATCH_ROUTING.get(predicted_class, {'priority': 'Priority 2', 'unit': 'Civil Defense', 'protocol': 'Standard response.'})
+                routing = DISPATCH_ROUTING.get(predicted_class, {'priority': 'Priority 2', 'agency': 'Civil Defense', 'action': 'Standard assessment.'})
                 
                 st.markdown(f"""
-                <div class="result-box">
-                    <div style="font-size: 0.75rem; color: #6b7280; text-transform: uppercase; font-weight: 600;">Predicted Category</div>
-                    <div class="result-class">{predicted_class}</div>
-                    <div class="result-meta">Confidence: <strong>{confidence:.2f}%</strong> | Engine: <strong>{engine_choice.split('(')[0].strip()}</strong> | Latency: <strong>{t_exec:.2f} ms</strong></div>
-                    <div class="dispatch-box">
+                <div class="result-panel">
+                    <div style="font-size: 0.75rem; color: {text_secondary}; text-transform: uppercase; font-weight: 600;">Predicted Disaster Category</div>
+                    <div class="result-category">{predicted_class}</div>
+                    <div class="result-score">Confidence: <strong>{confidence:.2f}%</strong> | Model: <strong>{engine_choice.split('(')[0].strip()}</strong> | Latency: <strong>{t_exec:.2f} ms</strong></div>
+                    <div class="dispatch-card">
                         <div><strong>Priority Level:</strong> {routing['priority']}</div>
-                        <div><strong>Assigned Agency:</strong> {routing['unit']}</div>
-                        <div><strong>Action Protocol:</strong> {routing['protocol']}</div>
+                        <div><strong>Lead Agency:</strong> {routing['agency']}</div>
+                        <div><strong>Action Protocol:</strong> {routing['action']}</div>
                     </div>
                 </div>
                 """, unsafe_allow_html=True)
@@ -410,7 +458,7 @@ with tab_single:
                     r_col2.progress(float(final_p[i]))
                     r_col3.write(f"{c_pct:.2f}%")
                     
-                with st.expander("View Token Breakdowns (BERT WordPiece vs. NLTK Lemmatized)"):
+                with st.expander("View Subword Token Decomposition (BERT WordPiece vs. Lemmatized)"):
                     st.markdown("**1. BERT WordPiece Subword Decomposition:**")
                     bert_toks = get_bert_tokens(tweet_input)
                     st.markdown(" ".join([f"<span class='bert-tag'>{t}</span>" for t in bert_toks[:25]]), unsafe_allow_html=True)
@@ -418,7 +466,7 @@ with tab_single:
                         st.caption(f"+ {len(bert_toks) - 25} more subwords...")
                         
                     st.markdown("**2. NLTK Lemmatized N-Gram Tokens:**")
-                    st.markdown(" ".join([f"<span class='token-tag'>{w}</span>" for w in cleaned_str.split()]), unsafe_allow_html=True)
+                    st.markdown(" ".join([f"<span class='token-item'>{w}</span>" for w in cleaned_str.split()]), unsafe_allow_html=True)
                     
                     st.markdown("**3. Complete 12-Class Probability Table:**")
                     all_probs_df = pd.DataFrame({
@@ -427,14 +475,14 @@ with tab_single:
                     }).sort_values(by="Probability", ascending=False)
                     st.dataframe(all_probs_df, use_container_width=True, hide_index=True)
         else:
-            st.info("Select a preset scenario above or enter custom text to view live predictions.")
+            st.info("Select a preset scenario above or enter text to view predictions.")
 
-# Tab 2: Model Comparison Sandbox (Only Non-Bonus Standalone Models)
+# Tab 2: Model Comparison Sandbox
 with tab_compare:
     st.markdown("#### Multi-Model Comparison Sandbox")
-    st.markdown("Compare predictions across the top-performing standalone models simultaneously on the same text:")
+    st.markdown("Compare predictions across the top standalone models simultaneously on the exact same text:")
     
-    cmp_input = st.text_area("Test text for multi-model comparison:", value=tweet_input if tweet_input else "Forest fire spreading rapidly near residential area due to severe drought and dry wind conditions.", height=90)
+    cmp_input = st.text_area("Test text for side-by-side comparison:", value=tweet_input if tweet_input else "Forest fire spreading rapidly near residential area due to severe drought and dry wind conditions.", height=90)
     
     if cmp_input.strip():
         c_clean = clean_tweet_text(cmp_input)
@@ -478,7 +526,7 @@ with tab_compare:
 
 # Tab 3: Batch File Processing
 with tab_batch:
-    st.markdown("#### Batch CSV File Classification")
+    st.markdown("#### Batch CSV File Processing")
     st.markdown("Upload a CSV file containing social media messages to run automated multi-class triage across thousands of records:")
     
     csv_file = st.file_uploader("Upload CSV file (must include `tweet_text` or `text` column):", type=["csv"])
@@ -507,7 +555,7 @@ with tab_batch:
                     batch_df['Predicted_Disaster'] = b_preds
                     batch_df['Confidence_Score'] = np.round(b_confs, 2)
                     batch_df['Priority_Tier'] = [DISPATCH_ROUTING.get(p, {}).get('priority', 'Priority 2') for p in b_preds]
-                    batch_df['Assigned_Unit'] = [DISPATCH_ROUTING.get(p, {}).get('unit', 'Civil Defense') for p in b_preds]
+                    batch_df['Assigned_Unit'] = [DISPATCH_ROUTING.get(p, {}).get('agency', 'Civil Defense') for p in b_preds]
                 
                 st.dataframe(batch_df[[target_col, 'Predicted_Disaster', 'Confidence_Score', 'Priority_Tier', 'Assigned_Unit']].head(25), use_container_width=True)
                 
@@ -522,33 +570,24 @@ with tab_batch:
         except Exception as e:
             st.error(f"Error processing CSV: {e}")
 
-# Tab 4: Evaluation Benchmark (Non-Bonus Models)
+# Tab 4: Evaluation Benchmark
 with tab_benchmark:
     st.markdown("#### Empirical Evaluation Benchmark (Held-Out Test Set, n = 1,647)")
-    st.markdown("Quantitative evaluation metrics across the top configuration of each standalone model family evaluated under a strict stratified 70/15/15 split:")
+    st.markdown("Quantitative evaluation metrics across standalone model families evaluated under a strict stratified 70/15/15 split:")
     
     benchmark_data = pd.DataFrame([
-        {"Model Family": "BERT Base (Fine-Tuned)", "Feature Space": "WordPiece Subwords (768d)", "Configuration": "LR=2e-5, Batch=32, Epochs=3", "Test Accuracy": "99.82%", "Macro Precision": "0.9983", "Macro Recall": "0.9983", "Macro F1": "0.9983"},
-        {"Model Family": "Random Forest", "Feature Space": "TF-IDF (1-2 ngrams)", "Configuration": "n_estimators=300, min_split=4", "Test Accuracy": "98.85%", "Macro Precision": "0.9887", "Macro Recall": "0.9895", "Macro F1": "0.9891"},
-        {"Model Family": "Logistic Regression", "Feature Space": "TF-IDF (1-2 ngrams)", "Configuration": "C=1.0, Balanced Class Weights", "Test Accuracy": "98.60%", "Macro Precision": "0.9876", "Macro Recall": "0.9874", "Macro F1": "0.9874"},
-        {"Model Family": "Bidirectional GRU", "Feature Space": "Word2Vec (100d)", "Configuration": "64 units, Adam LR=1e-3", "Test Accuracy": "98.06%", "Macro Precision": "0.9830", "Macro Recall": "0.9824", "Macro F1": "0.9824"},
-        {"Model Family": "Multinomial Naive Bayes", "Feature Space": "TF-IDF (1-2 ngrams)", "Configuration": "Laplace Smoothing (alpha=1.0)", "Test Accuracy": "97.27%", "Macro Precision": "0.9754", "Macro Recall": "0.9727", "Macro F1": "0.9738"},
-        {"Model Family": "Bidirectional SimpleRNN", "Feature Space": "Word2Vec (100d)", "Configuration": "64 units, Adam LR=1e-3", "Test Accuracy": "95.63%", "Macro Precision": "0.9592", "Macro Recall": "0.9576", "Macro F1": "0.9576"},
-        {"Model Family": "Bidirectional LSTM", "Feature Space": "Word2Vec (100d)", "Configuration": "64 units, Adam LR=1e-3", "Test Accuracy": "95.20%", "Macro Precision": "0.9547", "Macro Recall": "0.9556", "Macro F1": "0.9556"},
-        {"Model Family": "SimpleRNN", "Feature Space": "Word2Vec (100d)", "Configuration": "2-Layer Stacked (128/64), Dropout=0.3", "Test Accuracy": "94.41%", "Macro Precision": "0.9482", "Macro Recall": "0.9466", "Macro F1": "0.9466"}
+        {"Model Architecture": "BERT Base Transformer (Fine-Tuned)", "Representation": "WordPiece Subwords (768d)", "Configuration": "LR=2e-5, Batch=32, Epochs=3", "Test Accuracy": "99.82%", "Macro Precision": "0.9983", "Macro Recall": "0.9983", "Macro F1": "0.9983"},
+        {"Model Architecture": "Random Forest", "Representation": "TF-IDF (1-2 ngrams)", "Configuration": "n_estimators=300, min_split=4", "Test Accuracy": "98.85%", "Macro Precision": "0.9887", "Macro Recall": "0.9895", "Macro F1": "0.9891"},
+        {"Model Architecture": "Logistic Regression", "Representation": "TF-IDF (1-2 ngrams)", "Configuration": "C=1.0, Balanced Class Weights", "Test Accuracy": "98.60%", "Macro Precision": "0.9876", "Macro Recall": "0.9874", "Macro F1": "0.9874"},
+        {"Model Architecture": "Bidirectional GRU", "Representation": "Word2Vec (100d)", "Configuration": "64 units, Adam LR=1e-3", "Test Accuracy": "98.06%", "Macro Precision": "0.9830", "Macro Recall": "0.9824", "Macro F1": "0.9824"},
+        {"Model Architecture": "Multinomial Naive Bayes", "Representation": "TF-IDF (1-2 ngrams)", "Configuration": "Laplace Smoothing (alpha=1.0)", "Test Accuracy": "97.27%", "Macro Precision": "0.9754", "Macro Recall": "0.9727", "Macro F1": "0.9738"},
+        {"Model Architecture": "Bidirectional SimpleRNN", "Representation": "Word2Vec (100d)", "Configuration": "64 units, Adam LR=1e-3", "Test Accuracy": "95.63%", "Macro Precision": "0.9592", "Macro Recall": "0.9576", "Macro F1": "0.9576"},
+        {"Model Architecture": "Bidirectional LSTM", "Representation": "Word2Vec (100d)", "Configuration": "64 units, Adam LR=1e-3", "Test Accuracy": "95.20%", "Macro Precision": "0.9547", "Macro Recall": "0.9556", "Macro F1": "0.9556"},
+        {"Model Architecture": "SimpleRNN", "Representation": "Word2Vec (100d)", "Configuration": "2-Layer Stacked (128/64), Dropout=0.3", "Test Accuracy": "94.41%", "Macro Precision": "0.9482", "Macro Recall": "0.9466", "Macro F1": "0.9466"}
     ])
     st.dataframe(benchmark_data, use_container_width=True, hide_index=True)
-    
-    st.markdown("""
-    **BERT Base Fine-Tuning Hyperparameters & Architecture:**
-    - **Foundation Model:** `bert-base-uncased` (12 Transformer Layers, 768 Hidden Dim, 12 Attention Heads, 110M Parameters)
-    - **Optimizer:** AdamW (Decoupled Weight Decay, $\lambda = 0.01$)
-    - **Learning Rate:** $2 \times 10^{-5}$ with linear learning rate warmup over initial 10% of training steps
-    - **Batch Size:** 32 | **Epochs:** 3 | **Max Sequence Length:** 64 tokens
-    - **Classification Head:** Linear projection from pooled `[CLS]` token representation ($\mathbf{W} \in \mathbb{R}^{12 \times 768}$)
-    """)
 
-# Tab 5: Dataset Statistics
+# Tab 5: Dataset Distribution
 with tab_dataset:
     st.markdown("#### Dataset Class Distribution (CrisisNLP Benchmark, n = 11,015)")
     
@@ -568,18 +607,26 @@ with tab_dataset:
     ])
     st.dataframe(counts_df, use_container_width=True, hide_index=True)
 
-# Tab 6: Terms & Privacy
-with tab_legal:
-    st.markdown("#### Privacy Statement & Terms of Use")
+# Tab 6: Architecture & Author Credits
+with tab_about:
+    st.markdown("#### Project Architecture & Author Credits")
     st.markdown("""
-    - **In-Memory Processing:** All text and file classification operations occur ephemerally in active memory. No user inputs are permanently logged or shared.
-    - **Intended Use:** This tool is designed for academic research, situational awareness benchmarking, and decision-support exploration.
-    - **Open-Source License:** Released under the MIT Open-Source License.
+    **CrisisNLP Research System**  
+    An end-to-end Natural Language Processing system for rapid social media disaster categorization and emergency response dispatch routing.
+    
+    - **Project Lead & NLP Engineer:** **Avishek Biswas**
+    - **Primary Frameworks:** PyTorch, Transformers (Hugging Face), Scikit-Learn, NLTK, Streamlit
+    - **Benchmark Dataset:** CrisisNLP / CrisisBench (11,015 records across 12 disaster classes)
+    
+    **Project Links:**
+    - **GitHub Repository:** [https://github.com/xer0Xavishek/disaster-nlp-classification](https://github.com/xer0Xavishek/disaster-nlp-classification)
+    - **Master Colab Notebook:** [disaster_nlp_classification.ipynb](https://colab.research.google.com/github/xer0Xavishek/disaster-nlp-classification/blob/main/disaster_nlp_classification.ipynb)
+    - **Research Paper PDF:** `report/project_report_group-05.pdf`
     """)
 
-# Minimalist Footer
+# Minimalist Footer with Credits
 st.markdown("""
-<div style="text-align: center; margin-top: 2.5rem; padding-top: 1rem; border-top: 1px solid #e5e7eb; color: #6b7280; font-size: 0.75rem;">
-    Crisis Text Multi-Class Classifier · Open-Source Research Console · MIT License
+<div style="text-align: center; margin-top: 2.5rem; padding-top: 1rem; border-top: 1px solid #e2e8f0; color: #64748b; font-size: 0.8rem;">
+    CrisisNLP: Disaster Text Classification System · Built & Engineered by <strong>Avishek Biswas</strong> · MIT Open Source License
 </div>
 """, unsafe_allow_html=True)
