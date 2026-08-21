@@ -4,6 +4,7 @@ A Natural Language Processing project for classifying crisis-related tweets into
 
 **Course:** CSE440 - Natural Language Processing (Summer 2026)  
 **Section:** 03  
+**Group:** 05
 **Institution:** BRAC University  
 
 **Team Members:**
