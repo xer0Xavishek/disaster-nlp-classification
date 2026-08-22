@@ -13,7 +13,7 @@ A Natural Language Processing project for classifying crisis-related tweets into
 - Fahim Tasnim Khan (ID: 23201087)
 - Tawsif Kabir Pritom (ID: 23201231)
 
-[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/xer0Xavishek/disaster-nlp-classification/blob/main/disaster_nlp_classification.ipynb)
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/xer0Xavishek/disaster-nlp-classification/blob/main/disaster_nlp_classification.ipynb#scrollTo=7c59b931)
 
 ---
 
