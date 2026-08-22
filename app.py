@@ -745,7 +745,7 @@ with tab_about:
     **Project Links:**
     - **GitHub Repository:** [https://github.com/xer0Xavishek/disaster-nlp-classification](https://github.com/xer0Xavishek/disaster-nlp-classification)
     - **Master Colab Notebook:** [disaster_nlp_classification.ipynb](https://colab.research.google.com/github/xer0Xavishek/disaster-nlp-classification/blob/main/disaster_nlp_classification.ipynb)
-    - **Research Paper PDF:** `report/project_report_group-05.pdf`
+    - **Research Paper PDF:** `report/Group05_23201427_23201444_23201087_23201231.pdf`
     """)
 
 # Minimalist Footer with Credits
